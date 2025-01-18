@@ -26,6 +26,7 @@ export function WalletDialog() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                effect={primaryWallet ? "ringHover" : "shineHover"}
                 variant="ghost"
                 size="sm"
                 className="glow-effect h-7 px-3 text-xs font-normal hover:bg-accent hover:text-accent-foreground transition-all duration-300 ease-in-out shadow-sm hover:shadow-md hover:shadow-purple-100/50 dark:hover:shadow-purple-900/50"
