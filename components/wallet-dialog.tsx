@@ -29,7 +29,7 @@ export function WalletDialog() {
                 effect={primaryWallet ? "ringHover" : "shineHover"}
                 variant="ghost"
                 size="sm"
-                className="glow-effect h-7 px-3 text-xs font-normal hover:bg-accent hover:text-accent-foreground transition-all duration-300 ease-in-out shadow-sm hover:shadow-md hover:shadow-purple-100/50 dark:hover:shadow-purple-900/50"
+                className="glow-effect h-10 px-3 text-xs font-normal hover:bg-accent hover:text-accent-foreground transition-all duration-300 ease-in-out shadow-sm hover:shadow-md hover:shadow-purple-100/50 dark:hover:shadow-purple-900/50"
               >
                 <div className="flex items-center space-x-2">
                   <BreathingIcon />
@@ -48,7 +48,7 @@ export function WalletDialog() {
               <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-3 text-xs font-normal hover:bg-accent hover:text-accent-foreground transition-all duration-300 ease-in-out shadow-sm hover:shadow-md hover:shadow-purple-100/50 dark:hover:shadow-purple-900/50"
+                  className="h-10 px-3 text-xs font-normal hover:bg-accent hover:text-accent-foreground transition-all duration-300 ease-in-out shadow-sm hover:shadow-md hover:shadow-purple-100/50 dark:hover:shadow-purple-900/50"
                   onClick={handleLogOut}
                 >
                   <LogOut className="mr-1.5 h-3 w-3" />
@@ -65,7 +65,7 @@ export function WalletDialog() {
           effect="shine"
           variant="ghost"
           size="sm"
-          className="glow-effect h-7 px-3 text-xs font-normal hover:bg-accent hover:text-accent-foreground transition-all duration-300 ease-in-out shadow-sm hover:shadow-md hover:shadow-purple-100/50 dark:hover:shadow-purple-900/50"
+          className="glow-effect h-10 px-3 text-xs font-normal hover:bg-accent hover:text-accent-foreground transition-all duration-300 ease-in-out shadow-sm hover:shadow-md hover:shadow-purple-100/50 dark:hover:shadow-purple-900/50"
           onClick={() => setShowAuthFlow(true)}
         >
           <Wallet className="mr-1.5 h-3 w-3" />

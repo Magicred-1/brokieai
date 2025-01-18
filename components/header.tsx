@@ -24,7 +24,7 @@ export function Header({ isRightDrawerOpen, onToggleRightDrawer }: HeaderProps) 
           <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
             <Image src="/andrew_smoking.gif" alt="Create new agent" width={60} height={60} />
           </div>
-          <h1 className="text-xl font-bold">Crypto AI Agents</h1>
+          <h1 className="text-xl font-bold">BrookieAI</h1>
         </div>
         <div className="flex items-center space-x-2">
           <CreateAgentDialog />
