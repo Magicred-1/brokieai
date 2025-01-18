@@ -10,14 +10,12 @@ import { CreateAgentDialog } from './create-agent-dialog'
 import { ChatDrawer } from './chat-drawer'
 
 interface HeaderProps {
-  readonly isDrawerOpen: boolean;
   readonly isRightDrawerOpen: boolean;
-  readonly onToggleDrawer: () => void;
   readonly onToggleRightDrawer: () => void;
   
 }
 
-export function Header({ isDrawerOpen, onToggleDrawer, isRightDrawerOpen, onToggleRightDrawer }: HeaderProps) {
+export function Header({ isRightDrawerOpen, onToggleRightDrawer }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between transition-colors duration-300">
       <div className="flex items-center space-x-2">
@@ -31,7 +29,7 @@ export function Header({ isDrawerOpen, onToggleDrawer, isRightDrawerOpen, onTogg
         <ThemeToggle />
       </div>
 
-      <MenuDrawer isOpen={isDrawerOpen} onToggle={onToggleDrawer} />
+      <MenuDrawer />
       <ChatDrawer isOpen={isRightDrawerOpen} onToggle={onToggleRightDrawer} AgentName={'Adam'} />
 
       <MobileMenu />
