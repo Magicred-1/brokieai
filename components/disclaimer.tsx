@@ -33,8 +33,8 @@ export default function AlphaDisclaimer() {
           <X className="h-8 w-8" />
         </button>
         <div className="flex flex-col items-center mb-6">
-          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-            <Image src="/andrew_smoking.gif" alt="Create new agent" width={60} height={60} />
+          <div className="flex items-center justify-center">
+            <Image src="/andrew_smoking.gif" alt="Create new agent" width={150} height={150} />
           </div>
           <h2 className="text-2xl font-semibold text-center mb-4">Solana AI Agent: Alpha Version</h2>
         </div>
