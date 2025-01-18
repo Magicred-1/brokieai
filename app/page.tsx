@@ -10,6 +10,7 @@ import { useState } from "react";
 import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { motion } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
+import SolanaIcon from "@/components/solana-icon";
 
 
 export default function LandingPage() {
@@ -33,6 +34,7 @@ export default function LandingPage() {
           </div>
           <div className="flex space-x-2">
             <Button
+              effect={"shineHover"}
               variant="outline"
               className="hidden md:block border-[#2683C0] text-[#2683C0] hover:bg-[#2683C0] hover:text-white"
               onClick={() => {
@@ -67,7 +69,7 @@ export default function LandingPage() {
                 Solana AI Agents
               </motion.h1>
               <p className="text-gray-400 text-lg md:text-xl mb-8 max-w-2xl mx-auto md:mx-0">
-                Build, deploy, and monetize AI agents on Solana without writing code.
+                Build, deploy, and monetize AI agents on <SolanaIcon className="h-6 w-6 inline-block" /> Solana without writing code.
                 Just speak, configure, and launch your autonomous AI agents.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
@@ -84,7 +86,7 @@ export default function LandingPage() {
                 <Button
                   variant="outline"
                   className="border-[#2683C0] text-[#2683C0] hover:bg-[#2683C0] hover:text-white px-8 py-6 text-lg"
-                  onClick={() => setIsVideoOpen(true)}
+                  onClick={() => setIsVideoOpen(true)} // Correctly toggle the dialog state
                 >
                   Watch Demo
                 </Button>
@@ -108,18 +110,19 @@ export default function LandingPage() {
         thumbnailSrc="/demo-thumbnail.jpg"
         animationStyle="from-center"
         className="hidden" // Use your custom styling if needed
-        isOpen={isVideoOpen}
-        onClose={() => setIsVideoOpen(false)}
+        isOpen={isVideoOpen} // Correctly connect state
+        onClose={() => setIsVideoOpen(false)} // Update state to close dialog
       />
 
       {/* Features Grid */}
       <section className="py-12 md:py-20 bg-gradient-to-b from-[#020817] to-gray-900">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-12">
-            Create AI Agents with Your Voice
+            Create AI Agents with No-Code 🚀
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             {[
+              { Icon: Blocks, title: "No-Code Interface", description: "Create AI agents without writing a single line of code. Just speak and configure." },
               { Icon: Mic, title: "Voice Commands", description: "Configure your AI agents using natural language voice commands. No coding required." },
               { Icon: Wallet, title: "Solana Integration", description: "Deploy agents directly to Solana blockchain with built-in wallet and token management." },
               { Icon: Cpu, title: "AI Capabilities", description: "Leverage advanced AI models for natural language processing and autonomous decision-making." }
@@ -163,7 +166,14 @@ export default function LandingPage() {
                     <Bot className="h-5 w-5 text-[#2683C0]" />
                     <p className="text-gray-300">Configuring trading parameters...</p>
                   </div>
-                  <Button className="w-full bg-[#2683C0] hover:bg-[#1f6a9a] text-white">
+                  <Button className="w-full bg-[#2683C0] hover:bg-[#1f6a9a] text-white"
+                    effect={"shineHover"}
+                    onClick={
+                      () => {
+                        router.push('/create')
+                      }
+                    }
+                  >
                     Deploy Agent
                   </Button>
                 </CardContent>

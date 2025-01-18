@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import DynamicSolanaWalletProvider from '@/components/providers/DynamicSolanaWalletProvider'
 import { Toaster } from 'sonner'
 
-const lexend = Lexend({ subsets: ['latin'] })
+const lexend = Lexend({ subsets: ['latin'], weight: "400" })
 
 export const metadata: Metadata = {
   title: 'AI Chat',

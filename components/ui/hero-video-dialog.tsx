@@ -77,7 +77,7 @@ export default function HeroVideoDialog({
   className,
   isOpen,
   onClose,
-}: HeroVideoProps) {
+}: Readonly<HeroVideoProps>) {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const selectedAnimation = animationVariants[animationStyle];
 
