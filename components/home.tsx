@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Disclaimer from '@/components/disclaimer'
 import Footer from '@/components/footer'
 import { Header } from '@/components/header'
-import { MyReactFlow } from './react-flow-sample'
+import MyReactFlow from '@/components/reactflow/react-flow-sample'
 
 export default function Home() {
     const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false)

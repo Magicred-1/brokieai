@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
-import { Sparkles, Bot, Mic, Wallet, Blocks, Cpu } from 'lucide-react'
+import { Bot, Mic, Blocks, Cpu } from 'lucide-react'
 import { useRouter } from "next/navigation";
 import { WalletDialog } from "@/components/wallet-dialog";
 import { useState } from "react";
@@ -29,8 +29,8 @@ export default function LandingPage() {
       <header className="border-b border-gray-800">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Image src="/andrew_smoking.gif" alt="BrookieAI Logo" width={50} height={50} />
-            <span className="font-bold text-xl">BrookieAI</span>
+            <Image src="/andrew_smoking.gif" alt="BrokieAI Logo" width={50} height={50} />
+            <span className="font-bold text-xl">BrokieAI</span>
           </div>
           <div className="flex space-x-2">
             <Button
@@ -64,9 +64,9 @@ export default function LandingPage() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                Create Voice-Enabled
+                Voice-Enabled
                 <br />
-                Solana AI Agents
+                No-Code Solana AI Agents
               </motion.h1>
               <p className="text-gray-400 text-lg md:text-xl mb-8 max-w-2xl mx-auto md:mx-0">
                 Build, deploy, and monetize AI agents on <SolanaIcon className="h-6 w-6 inline-block" /> Solana without writing code.
@@ -123,8 +123,8 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8">
             {[
               { Icon: Blocks, title: "No-Code Interface", description: "Create AI agents without writing a single line of code. Just speak and configure." },
-              { Icon: Mic, title: "Voice Commands", description: "Configure your AI agents using natural language voice commands. No coding required." },
-              { Icon: Wallet, title: "Solana Integration", description: "Deploy agents directly to Solana blockchain with built-in wallet and token management." },
+              { Icon: Mic, title: "Voice Commands", description: "Interact with your AI agents using natural language voice commands. No coding required." },
+              { Icon: SolanaIcon, title: "Solana Integration", description: "Deploy agents directly to Solana blockchain with built-in wallet and token management." },
               { Icon: Cpu, title: "AI Capabilities", description: "Leverage advanced AI models for natural language processing and autonomous decision-making." }
             ].map((feature, index) => (
               <motion.div
@@ -183,7 +183,7 @@ export default function LandingPage() {
               <CardContent className="p-6">
                 <div className="aspect-video relative bg-black rounded-lg overflow-hidden">
                   <Image
-                    src="/placeholder.svg"
+                    src="/ai_creator.png"
                     alt="AI Agent Interface Demo"
                     layout="fill"
                     objectFit="cover"
@@ -220,7 +220,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* How It Works
       <section className="py-12 md:py-20 bg-gradient-to-b from-[#020817] to-[#041325]">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-12">
@@ -248,7 +248,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
       <section className="py-12 md:py-20 bg-gradient-to-t from-[#2683C0]/20 to-transparent">

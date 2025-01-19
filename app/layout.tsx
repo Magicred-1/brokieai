@@ -8,8 +8,8 @@ import { Toaster } from 'sonner'
 const lexend = Lexend({ subsets: ['latin'], weight: "400" })
 
 export const metadata: Metadata = {
-  title: 'AI Chat',
-  description: 'A modern AI chat interface',
+  title: 'BrokieAI',
+  description: 'BrokieAI is a no-code platform for creating and managing AI agents.',
 }
 
 export default function RootLayout({

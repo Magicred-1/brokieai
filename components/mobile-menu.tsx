@@ -24,7 +24,7 @@ export function MobileMenu() {
           {/* <ThemeToggle /> */}
         </nav>
         <div className="text-xs text-muted-foreground mt-auto pt-4 border-t">
-          © {new Date().getFullYear()} Solana AI Agent. All rights reserved.
+          © {new Date().getFullYear()} BrookieAI. All rights reserved.
         </div>
       </SheetContent>
     </Sheet>
