@@ -10,7 +10,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { HelpCircle, MessageSquare, Mic, Wallet, Code } from 'lucide-react'
-import { WalletDialog } from "./wallet-dialog"
 
 export function HowItWorksDialog() {
   return (
@@ -26,7 +25,6 @@ export function HowItWorksDialog() {
           <DialogDescription>
               Connect your wallet first to buy crypto.
           </DialogDescription>
-          <WalletDialog />
           <DialogTitle>How the Crypto AI Agent Creator Works</DialogTitle>
           <DialogDescription>
             Understand the key features of our platform
