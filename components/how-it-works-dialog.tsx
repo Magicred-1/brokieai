@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { HelpCircle, MessageSquare, Mic, Wallet, Code } from 'lucide-react'
+import { WalletDialog } from "./wallet-dialog"
 
 export function HowItWorksDialog() {
   return (
@@ -21,7 +22,11 @@ export function HowItWorksDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+        <DialogHeader>     
+          <DialogDescription>
+              Connect your wallet first to buy crypto.
+          </DialogDescription>
+          <WalletDialog />
           <DialogTitle>How the Crypto AI Agent Creator Works</DialogTitle>
           <DialogDescription>
             Understand the key features of our platform
@@ -33,7 +38,7 @@ export function HowItWorksDialog() {
             <div className="space-y-1">
               <h3 className="font-medium text-base">Connect Your Solana Wallet</h3>
               <p className="text-sm text-muted-foreground">
-                Connect your Solana wallet to create, pay for, and deploy your AI agents. Our platform supports all Solana wallets, including Phantom, Sollet, and more.
+                Our platform supports all Solana wallets, including Phantom, Solflare, and more.
               </p>
             </div>
           </section>
@@ -60,7 +65,7 @@ export function HowItWorksDialog() {
             <div className="space-y-1">
               <h3 className="font-medium text-base">Talk to Your AI Agent</h3>
               <p className="text-sm text-muted-foreground">
-                Use the microphone button to speak your queries. Our system converts speech to text and processes your questions in real-time, enabling smooth interaction with your AI agent.
+                Use the microphone button / chat to speak your custom queries. Our system converts speech to text and processes your questions in real-time, enabling smooth interaction with your AI agent.
               </p>
             </div>
           </section>

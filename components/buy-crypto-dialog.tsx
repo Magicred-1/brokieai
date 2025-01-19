@@ -12,11 +12,14 @@ import {
 } from "@/components/ui/dialog"
 import SolanaIcon from './solana-icon'
 import CoinbasePaymentEmbed from './coinbase-embed'
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { WalletDialog } from './wallet-dialog'
 
 export function BuyCryptoDialog() {
     const [isOpen, setIsOpen] = useState(false)
+    const { user, primaryWallet } = useDynamicContext()
     // Placeholder wallet address - in a real app, this would come from the user's connected wallet
-    const walletAddress = "DRpbCBMxVnDK7maPGv7vVGUk9KGEh4G8YfA1EFDBucyL"
+    const walletAddress = user ? primaryWallet?.address : ""
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -33,9 +36,18 @@ export function BuyCryptoDialog() {
                 Purchase cryptocurrency using Coinbase.
             </DialogDescription>
             </DialogHeader>
-            <div className="mt-4">
-            <CoinbasePaymentEmbed walletAddress={walletAddress} />
-            </div>
+            {
+            walletAddress ? (
+                <CoinbasePaymentEmbed walletAddress={walletAddress} />
+            ) : (
+                <>
+                    <DialogDescription>
+                        Connect your wallet first to buy crypto.
+                    </DialogDescription>
+                    <WalletDialog />
+                </>
+            )
+            }
         </DialogContent>
         </Dialog>
     )
