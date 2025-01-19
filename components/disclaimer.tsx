@@ -36,7 +36,7 @@ export default function AlphaDisclaimer() {
           <div className="flex items-center justify-center">
             <Image src="/andrew_smoking.gif" alt="Create new agent" width={150} height={150} />
           </div>
-          <h2 className="text-2xl font-semibold text-center mb-4">BrookieAI: Alpha Version</h2>
+          <h2 className="text-2xl font-semibold text-center mb-4">BrokieAI: Alpha Version</h2>
         </div>
         <p className="text-sm text-center mb-6 max-w-3xl mx-auto">
           You’re diving into a powerful AI still in its alpha phase. Expect raw responses and rapid development. Here’s what you should know:
