@@ -1,11 +1,13 @@
 import { createClient } from "@/utils/supabase";
 import { NextResponse } from "next/server";
 
-export const GET = async (
-  req: Request,
-  { params }: { params: { user: string } }
-) => {
-  const supabase = await createClient();
+type Props = {
+  params: Promise<{
+    user: string;
+  }>;
+};
+
+export const GET = async (req: Request, { params }: Props) => {
   const { user } = await params;
 
   if (!user) {
@@ -15,6 +17,7 @@ export const GET = async (
     );
   }
 
+  const supabase = await createClient();
   const { data: supabaseData, error } = await supabase
     .from("configuration")
     .select("*")
