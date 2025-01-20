@@ -16,7 +16,7 @@ import VoiceWave from "@/components/voice-wave";
 import debounce from "lodash/debounce";
 import { toast } from "sonner";
 import { AgentSelector } from "./chat-agent-selector";
-import { useUserWallets } from "@dynamic-labs/sdk-react-core";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 interface Message {
   role: string;
@@ -47,10 +47,9 @@ export function ChatDrawer({
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>();
   const [agents, setAgents] = useState<Agent[]>([]);
 
-  const userWallets = useUserWallets();
+  const { user, primaryWallet } = useDynamicContext();
 
-  const userAddress =
-    userWallets[0]?.address || "EyPvATbUKu6UnWdQ5nf9cpwypteJYGRHMRHnJ9cx3UhK"; // Default to a test addres, need to fix this (cannot retrieve user address)
+  const userAddress = primaryWallet?.address ?? "EyPvATbUKu6UnWdQ5nf9cpwypteJYGRHMRHnJ9cx3UhK";
 
   useEffect(() => {
     fetch("/api/eliza/list/" + userAddress)
@@ -284,7 +283,7 @@ export function ChatDrawer({
               <div className="flex-1 space-y-1">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">
-                    {message.role === "user" ? "User" : selectedAgent.name}
+                    {message.role === "user" ? user?.username : selectedAgent.name}
                   </span>
                   <span className="text-xs text-muted-foreground font-mono">
                     {message.timestamp}
