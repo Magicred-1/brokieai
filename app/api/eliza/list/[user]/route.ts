@@ -21,7 +21,7 @@ export const GET = async (req: Request, { params }: Props) => {
   const { data: supabaseData, error } = await supabase
     .from("configuration")
     .select("*")
-    .eq("owner", user); // adjust the filter to match the column to get only the agent from the user
+    .eq("owner", user);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
