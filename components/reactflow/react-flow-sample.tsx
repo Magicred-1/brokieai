@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 'use client'
 
 import React, { useCallback, useState } from 'react'
@@ -117,7 +119,7 @@ export default function MyReactFlow() {
       const newNode = {
         id: `${type}-${+new Date()}`,
         type: 'default',
-        data: { label: toolboxNodes.find((node) => node.id === type)?.label },
+        data: { label: toolboxNodes.find((node) => node.id === type)?.label ?? 'Default Label' },
         position,
         className: 'text-gray-800 bg-white dark:text-gray-100 dark:bg-gray-800', // Tailwind equivalent
       }
@@ -126,7 +128,7 @@ export default function MyReactFlow() {
     [setNodes]
   )
 
-  const onDragOver = useCallback((event) => {
+  const onDragOver = useCallback((event: any) => {
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
   }, [])
