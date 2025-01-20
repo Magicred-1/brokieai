@@ -1,0 +1,28 @@
+import { createClient } from "@/utils/supabase";
+import { NextResponse } from "next/server";
+
+export const GET = async (
+  req: Request,
+  { params }: { params: { user: string } }
+) => {
+  const supabase = await createClient();
+  const { user } = await params;
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "Username is required" },
+      { status: 400 }
+    );
+  }
+
+  const { data: supabaseData, error } = await supabase
+    .from("configuration")
+    .select("*")
+    .eq("name", user); // adjust the filter to match the column to get only the agent from the user
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ data: supabaseData });
+};
