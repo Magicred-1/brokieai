@@ -90,14 +90,14 @@ export default function DynamicSolanaWalletProvider({ children }: Readonly<{ chi
             environmentId: "2df7d89b-fc28-4a0c-a0da-3040c09dc0c9",
             walletConnectors: [SolanaWalletConnectors],
             cssOverrides: sidebarCss,
-            // events: {
-            //     onLogout: () => {
-            //         router.push("/");
-            //     },
-            //     onAuthSuccess: () => {
-            //         router.push("/create");
-            //     }
-            // }
+            events: {
+                onLogout: () => {
+                    console.log("Logged out");
+                },
+                onAuthSuccess: () => {
+                    console.log("Logged in");
+                }
+            }
         }}
         >
         {children}

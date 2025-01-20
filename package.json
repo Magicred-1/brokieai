@@ -18,7 +18,10 @@
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.6",
+    "@solana/web3.js": "^1.98.0",
     "@splinetool/react-spline": "^4.0.0",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.48.0",
     "@xyflow/react": "^12.4.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -36,9 +39,11 @@
     "reactflow": "^11.11.4",
     "sonner": "^1.7.2",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.0.5"
   },
   "devDependencies": {
+    "@elizaos/plugin-solana": "^0.1.8",
     "@eslint/eslintrc": "^3",
     "@types/lodash": "^4.17.14",
     "@types/node": "^20",
