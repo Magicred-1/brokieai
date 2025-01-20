@@ -1,21 +1,21 @@
 // AgentSelector Component
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import * as React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 
 interface Agent {
   id: string;
@@ -28,12 +28,11 @@ interface AgentSelectorProps {
   onAgentChange: (agent: Agent) => void;
 }
 
-const agents = [
-  { id: '1', name: 'Adam' },
-  { id: '2', name: 'Eve' },
-];
-
-export function AgentSelector({ agents, selectedAgent, onAgentChange }: AgentSelectorProps) {
+export function AgentSelector({
+  agents,
+  selectedAgent,
+  onAgentChange,
+}: AgentSelectorProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -52,23 +51,32 @@ export function AgentSelector({ agents, selectedAgent, onAgentChange }: AgentSel
       <PopoverContent className="w-full p-0">
         <Command>
           <CommandInput placeholder="Search AI agent..." />
-          <CommandEmpty>No agent found.</CommandEmpty>
+          {agents.length === 0 && <CommandEmpty>No agent found.</CommandEmpty>}
           <CommandGroup>
             {agents.map((agent) => (
-              <CommandItem
-                key={agent.id}
-                onSelect={() => {
+              // <CommandItem
+              //   key={agent.id}
+              //   onSelect={() => {
+              //     onAgentChange(agent);
+              //     setOpen(false);
+              //   }}
+              // >
+              //   <Check
+              //     className={`mr-2 h-4 w-4 ${
+              //       selectedAgent.id === agent.id ? "opacity-100" : "opacity-0"
+              //     }`}
+              //   />
+              //   {agent.name}
+              // </CommandItem>
+              <div
+                onClick={() => {
                   onAgentChange(agent);
                   setOpen(false);
                 }}
+                key={agent.id}
               >
-                <Check
-                  className={`mr-2 h-4 w-4 ${
-                    selectedAgent.id === agent.id ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-                {agent.name}
-              </CommandItem>
+                <p>{agent.name}</p>
+              </div>
             ))}
           </CommandGroup>
         </Command>
