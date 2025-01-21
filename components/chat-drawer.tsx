@@ -49,17 +49,21 @@ export function ChatDrawer({
 
   const { user, primaryWallet } = useDynamicContext();
 
-  const userAddress = primaryWallet?.address ?? "EyPvATbUKu6UnWdQ5nf9cpwypteJYGRHMRHnJ9cx3UhK";
+  const userAddress = primaryWallet?.address ?? "";
 
   useEffect(() => {
+    if (!userAddress) return;
+
     fetch("/api/eliza/list/" + userAddress)
       .then((response) => response.json())
       .then((data) => {
-        setSelectedAgent(data.data[0]);
-        setAgents(data.data);
+        if (data.data.length > 0) {
+          setSelectedAgent(data.data[0]);
+          setAgents(data.data);
+        }
       })
       .catch((error) => console.error("Error fetching agents:", error));
-  }, []);
+  }, [userAddress]);
 
   const handleAgentChange = (agent: { id: string; name: string }) => {
     setSelectedAgent(agent);
@@ -236,9 +240,50 @@ export function ChatDrawer({
     }
   };
 
-  if (!selectedAgent) {
-    return null;
-  }
+  const renderContent = () => {
+    if (!userAddress) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full">
+          <p className="text-center text-gray-500">Please connect your wallet to start chatting with your agents.</p>
+        </div>
+      );
+    }
+
+    if (agents.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full">
+          <p className="text-center text-gray-500">No agents found. Create your first agent to get started!</p>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="flex-1 overflow-y-auto mt-4 space-y-4 px-2"
+        ref={chatWindowRef}
+      >
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className="flex space-x-3 p-3 rounded-lg bg-muted/30 backdrop-blur-sm"
+          >
+            <div className="w-6 h-6 rounded-full bg-muted flex-shrink-0" />
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">
+                  {message.role === "user" ? user?.username : selectedAgent?.name}
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">
+                  {message.timestamp}
+                </span>
+              </div>
+              <p className="text-sm leading-relaxed">{message.content}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onToggle}>
@@ -267,87 +312,65 @@ export function ChatDrawer({
         </SheetHeader>
         <AgentSelector
           agents={agents}
-          selectedAgent={selectedAgent}
+          selectedAgent={selectedAgent ?? { id: "", name: "Create your first agent to get started" }}
           onAgentChange={handleAgentChange}
         />
-        <div
-          className="flex-1 overflow-y-auto mt-4 space-y-4 px-2"
-          ref={chatWindowRef}
-        >
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className="flex space-x-3 p-3 rounded-lg bg-muted/30 backdrop-blur-sm"
-            >
-              <div className="w-6 h-6 rounded-full bg-muted flex-shrink-0" />
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">
-                    {message.role === "user" ? user?.username : selectedAgent.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {message.timestamp}
-                  </span>
-                </div>
-                <p className="text-sm leading-relaxed">{message.content}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        {renderContent()}
         <div className="sticky bottom-4 left-0 right-0 flex justify-center">
-          <Button
-            size="lg"
-            className={`rounded-full px-6 py-6 text-sm font-medium shadow-lg text-white transition-all duration-300 ease-in-out ${
-              isMicActive
-                ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                : "bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500"
-            }`}
-            onClick={toggleMic}
-            disabled={isLoading}
+        <Button
+  size="lg"
+  className={`rounded-full px-6 py-6 text-sm font-medium shadow-lg text-white transition-all duration-300 ease-in-out ${
+    isMicActive
+      ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+      : "bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500"
+    }`}
+      onClick={toggleMic}
+      disabled={isLoading || !userAddress} // Disable if loading or not connected
+    >
+    <div className="flex items-center space-x-2">
+      <AnimatePresence mode="wait" initial={false}>
+        {isLoading ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            <div className="flex items-center space-x-2">
-              <AnimatePresence mode="wait" initial={false}>
-                {isLoading ? (
-                  <motion.div
-                    key="loading"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  </motion.div>
-                ) : isMicActive ? (
-                  <motion.div
-                    key="voice-wave"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <VoiceWave isActive={isMicActive} />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="mic-icon"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Mic className="h-5 w-5" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <span>
-                {isLoading
-                  ? "Initializing..."
-                  : isMicActive
-                  ? ""
-                  : "Click to turn on Microphone"}
-              </span>
-            </div>
-          </Button>
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          </motion.div>
+        ) : isMicActive ? (
+          <motion.div
+            key="voice-wave"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <VoiceWave isActive={false} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="mic-icon"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Mic className="h-5 w-5" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <span>
+        {isLoading
+          ? "Initializing..."
+          : isMicActive
+          ? ""
+          : "Click to turn on Microphone"}
+      </span>
+    </div>
+    </Button>
+
         </div>
       </SheetContent>
     </Sheet>
