@@ -7,8 +7,8 @@ function generate_characters(name: string, publicKey: string, privateKey: string
     // id: id,
     name: name,
     plugins: ["solana"],
-    clients: ['DIRECT'],
-    modelProvider: 'OPENAI',
+    clients: ['direct'],
+    modelProvider: 'openai',
     settings: {
       voice: { model: 'en_US-hfc_female-medium' },
       secrets: {

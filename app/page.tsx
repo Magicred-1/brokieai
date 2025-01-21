@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
-import { Bot, Mic, Blocks, Cpu } from 'lucide-react'
+import { Bot, Mic, Blocks } from 'lucide-react'
 import { useRouter } from "next/navigation";
 import { WalletDialog } from "@/components/wallet-dialog";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { motion } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
 import SolanaIcon from "@/components/solana-icon";
+import MeteoraIcon from "@/components/meteora-icon";
 
 
 export default function LandingPage() {
@@ -114,41 +115,45 @@ export default function LandingPage() {
         onClose={() => setIsVideoOpen(false)} // Update state to close dialog
       />
 
-      {/* Features Grid */}
+      { /* Features Grid */ }
       <section className="py-12 md:py-20 bg-gradient-to-b from-[#020817] to-gray-900">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-12">
-            Create AI Agents with No-Code 🚀
-          </h2>
-          <div className="grid md:grid-cols-4 gap-8">
-            {[
-              { Icon: Blocks, title: "No-Code Interface", description: "Create AI agents without writing a single line of code. Just speak and configure." },
-              { Icon: Mic, title: "Voice Commands", description: "Interact with your AI agents using natural language voice commands. No coding required." },
-              { Icon: SolanaIcon, title: "Solana Integration", description: "Deploy agents directly to Solana blockchain with built-in wallet and token management." },
-              { Icon: Cpu, title: "AI Capabilities", description: "Leverage advanced AI models for natural language processing and autonomous decision-making." }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Card className="bg-gray-800/50 backdrop-blur">
-                  <CardContent className="p-6">
-                    <div className="h-12 w-12 bg-[#2683C0]/10 rounded-lg flex items-center justify-center mb-4">
-                      <feature.Icon className="h-6 w-6 text-[#2683C0]" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                    <p className="text-gray-400">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+      <div className="container mx-auto px-4">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8">
+          Unlock the Power of No-Code AI 🚀
+        </h2>
+        <p className="text-lg text-gray-400 mb-12 text-center">
+          Revolutionize your workflow with our intuitive, no-code platform.
+        </p>
+        <div className="grid md:grid-cols-4 gap-8">
+          {[
+            { Icon: Blocks, title: "No-Code Interface", description: "Create AI agents without writing a single line of code. Connect blocks and configure settings with ease." },
+            { Icon: Mic, title: "Voice Commands", description: "Simply interact with your AI agents using natural language voice commands." },
+            { Icon: SolanaIcon, title: "Solana Integration", description: "Deploy agents directly to Solana blockchain with built-in wallet and token management." },
+            { Icon: MeteoraIcon, title: "Deploy on Meteora", description: "Monetize your AI agents on Meteora marketplace and earn passive income." },
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Card className="bg-gray-800/50 backdrop-blur">
+                <CardContent className="p-6">
+                  <div className="h-12 w-12 bg-[#2683C0]/10 rounded-lg flex items-center justify-center mb-4">
+                    <feature.Icon className="h-6 w-6 text-[#2683C0]" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                  <p className="text-gray-400">
+                    {feature.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
+      </div>
       </section>
+
 
       {/* Demo Section */}
       <section className="py-12 md:py-20 bg-gray-900">
