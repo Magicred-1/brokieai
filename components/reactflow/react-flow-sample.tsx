@@ -19,11 +19,14 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import SolanaIcon from '../solana-icon'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core'
-import { Button } from '../ui/button'
-import { Label } from '@radix-ui/react-label'
-import { Input } from '../ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '../ui/textarea'
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar'
+import { Twitter, LinkIcon } from 'lucide-react'
+import { Slider } from '@/components/ui/slider'
+import Confetti from 'react-confetti'
 
 const initialNodes = [
   {
@@ -36,6 +39,23 @@ const initialNodes = [
 ]
 
 const initialEdges: any[] = []
+
+interface AgentDetails {
+  name: string
+  description: string
+  image: string
+  lore?: string // Add the 'lore' property
+}
+
+interface TokenDetails {
+  name: string
+  symbol: string
+  solAmount: string
+  initialBuyAmount: number
+  twitter: string
+  telegram: string
+  website: string
+}
 
 const toolboxCategories = [
   {
@@ -155,13 +175,25 @@ function Toolbox({ isVisible, toggleVisibility, toolboxCategories } : { isVisibl
   )
 }
 
-
-const DeployDialog = () => {
-  const [agentDetails, setAgentDetails] = useState({ name: "", description: "", image: "" })
+export const DeployDialog = () => {
+  const [step, setStep] = useState(1)
+  const [agentDetails, setAgentDetails] = useState<AgentDetails>({ name: "", description: "", image: "", lore: "" })
+  const [tokenDetails, setTokenDetails] = useState<TokenDetails>({
+    name: "",
+    symbol: "",
+    solAmount: "0.00",
+    initialBuyAmount: 0.1,
+    twitter: "",
+    telegram: "",
+    website: "",
+  })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
-  const [imageUrl, setImageUrl] = useState("")
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [createToken, setCreateToken] = useState<boolean>(false) // State for token creation checkbox
+  const [confirmationOpen, setConfirmationOpen] = useState(false)
+  const [agentData, setAgentData] = useState<any | null>(null) // To store agent data (name, image)
+  const [tokenData, setTokenData] = useState<any | null>(null) // To store token data (address)
 
   const { user, primaryWallet, setShowAuthFlow } = useDynamicContext()
 
@@ -170,7 +202,6 @@ const DeployDialog = () => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000))
       const imageUrl = URL.createObjectURL(file)
-      setImageUrl(imageUrl)
       setAgentDetails((prevState) => ({ ...prevState, image: imageUrl }))
     } catch (error) {
       console.error("Image upload failed", error)
@@ -192,9 +223,59 @@ const DeployDialog = () => {
     }
   }
 
-  const handleDialogSubmit = () => {
-    console.log("Agent Details:", agentDetails)
-    // Further deployment logic can go here
+  const handleDialogSubmit = async () => {
+    if (!agentDetails.name || !primaryWallet?.address) {
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      // Step 1: Deploy Agent
+      const agentResponse = await fetch("/api/eliza", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: agentDetails.name,
+          description: agentDetails.description,
+          walletAddress: primaryWallet.address,
+        }),
+      })
+
+      const agentData = await agentResponse.json()
+      console.log("Agent deployed:", agentData)
+      setAgentData(agentData) // Store agent data for later use
+
+      // Step 2: Create Token (if the user has selected the checkbox)
+      if (createToken) {
+        const tokenResponse = await fetch("/api/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...tokenDetails,
+            agentId: agentData.id, // Assuming the agent API returns an ID
+            walletAddress: primaryWallet.address,
+          }),
+        })
+
+        const tokenData = await tokenResponse.json()
+        console.log("Token created:", tokenData)
+        setTokenData(tokenData) // Store token data for later use
+      } else {
+        setTokenData(null);
+      }
+
+      // Open the confirmation dialog after successful deployment
+      setConfirmationOpen(true)
+    } catch (error) {
+      console.error("Deployment failed", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (!user || !primaryWallet) {
@@ -206,60 +287,245 @@ const DeployDialog = () => {
   }
 
   return (
-    <Dialog>
+    <Dialog open={confirmationOpen} onOpenChange={(open) => setConfirmationOpen(open)}>
       <DialogTrigger asChild>
         <Button variant="default" className="bg-blue-500 hover:bg-blue-600 text-white" effect={"shineHover"}>
-          <Rocket className="h-4 w-4" />
+          <Rocket className="h-4 w-4 mr-2" />
           Deploy Agent
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Agent Details</DialogTitle>
-          <DialogDescription>Provide information about your agent to deploy it.</DialogDescription>
+          <DialogTitle>{step === 1 ? "Agent Details" : "Token Details"}</DialogTitle>
+          <DialogDescription>
+            {step === 1
+              ? "Provide information about your agent to deploy it."
+              : "Create a token for your agent (optional)"}
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
-          <div className="grid grid-cols-[120px_1fr] items-start gap-4">
-            <div className="flex flex-col items-center gap-2">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={previewUrl || undefined} alt="Agent Preview" />
-                <AvatarFallback>AG</AvatarFallback>
-              </Avatar>
-              <Label htmlFor="image-upload" className="cursor-pointer">
-                <div className="flex items-center gap-2 rounded-md bg-secondary px-3 py-1 text-xs hover:bg-secondary/80">
-                  <Upload className="h-3 w-3" />
-                  <span>Upload</span>
-                </div>
-                <Input id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-              </Label>
+        {step === 1 ? (
+          <div className="grid gap-6 py-4">
+            <div className="grid grid-cols-[120px_1fr] items-start gap-4">
+              <div className="flex flex-col items-center gap-2">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={previewUrl ?? undefined} alt="Agent Preview" />
+                  <AvatarFallback>AG</AvatarFallback>
+                </Avatar>
+                <Label htmlFor="image-upload" className="cursor-pointer">
+                  <div className="flex items-center gap-2 rounded-md bg-secondary px-3 py-1 text-xs hover:bg-secondary/80">
+                    <Upload className="h-3 w-3" />
+                    <span>Upload</span>
+                  </div>
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </Label>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="name">Agent Name</Label>
+                <Input
+                  id="name"
+                  value={agentDetails.name}
+                  onChange={(e) => setAgentDetails({ ...agentDetails, name: e.target.value })}
+                  placeholder="Enter agent name"
+                />
+              </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="name">Agent Name</Label>
-              <Input
-                id="name"
-                value={agentDetails.name}
-                onChange={(e) => setAgentDetails({ ...agentDetails, name: e.target.value })}
-                placeholder="Enter agent name"
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={agentDetails.description}
+                onChange={(e) => setAgentDetails({ ...agentDetails, description: e.target.value })}
+                placeholder={
+                  "- What does your agent do?\n- What are its capabilities?\n- How can users interact with it?"
+                }
+                className="h-24"
               />
             </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="lore">His EPIC Lore (Optional)</Label>
+              <Textarea
+                id="lore"
+                value={agentDetails.lore}
+                onChange={(e) => setAgentDetails({ ...agentDetails, lore: e.target.value })}
+                placeholder={
+                  "- What is his backstory?\n- What are his powers?\n- What is his purpose?"
+                }
+                className="h-24"
+              />
+            </div>
+
+            {/* New Checkbox for Token Creation */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="createToken"
+                checked={createToken}
+                onChange={(e) => setCreateToken(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="createToken">Create a token with this agent?</Label>
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={agentDetails.description}
-              onChange={(e) => setAgentDetails({ ...agentDetails, description: e.target.value })}
-              placeholder="Describe your agent's capabilities"
-              className="h-24"
-            />
+        ) : (
+          <div className="space-y-6 py-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="tokenName">Token Name</Label>
+                <Input
+                  id="tokenName"
+                  maxLength={25}
+                  value={tokenDetails.name}
+                  onChange={(e) => setTokenDetails({ ...tokenDetails, name: e.target.value })}
+                  placeholder="Enter token name"
+                />
+                <div className="text-right text-sm text-gray-500">{tokenDetails.name.length}/25</div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="symbol">Token Symbol</Label>
+                <Input
+                  id="symbol"
+                  maxLength={10}
+                  value={tokenDetails.symbol}
+                  onChange={(e) => setTokenDetails({ ...tokenDetails, symbol: e.target.value })}
+                  placeholder="Enter token symbol"
+                />
+                <div className="text-right text-sm text-gray-500">{tokenDetails.symbol.length}/10</div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Initial Dev Buy Amount (SOL)</Label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    value={[tokenDetails.initialBuyAmount]}
+                    onValueChange={(value) => setTokenDetails({ ...tokenDetails, initialBuyAmount: value[0] })}
+                    min={0.1}
+                    max={10}
+                    step={0.1}
+                  />
+                  <Input
+                    type="number"
+                    value={tokenDetails.initialBuyAmount}
+                    onChange={(e) => setTokenDetails({ ...tokenDetails, initialBuyAmount: parseFloat(e.target.value) })}
+                    min="0.1"
+                    max="10"
+                    step="0.1"
+                    className="w-20"
+                  />
+                  <SolanaIcon className="h-6 w-6" />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="twitter">Twitter</Label>
+                <div className="relative">
+                  <Twitter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="twitter"
+                    value={tokenDetails.twitter}
+                    onChange={(e) => setTokenDetails({ ...tokenDetails, twitter: e.target.value })}
+                    placeholder="Enter X link (Optional)"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="website">Telegram</Label>
+                <div className="relative">
+                  <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="telegram"
+                    value={tokenDetails.telegram}
+                    onChange={(e) => setTokenDetails({ ...tokenDetails, website: e.target.value })}
+                    placeholder="Enter website (Optional)"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="website">Website</Label>
+                <div className="relative">
+                  <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="website"
+                    value={tokenDetails.website}
+                    onChange={(e) => setTokenDetails({ ...tokenDetails, website: e.target.value })}
+                    placeholder="Enter website (Optional)"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
         <DialogFooter>
-          <Button type="submit" onClick={handleDialogSubmit} disabled={loading}>
-            {loading ? "Uploading..." : "Deploy Agent"}
+          {step === 2 && (
+            <Button type="button" variant="outline" onClick={() => setStep(1)} className="mr-auto">
+              Back
+            </Button>
+          )}
+          <Button
+            type="submit"
+            effect={"shineHover"}
+            onClick={step === 1 ? () => setStep(2) : handleDialogSubmit}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+            disabled={loading}
+          >
+            {loading ? "Deploying..." : (step === 1 ? "Next" : (
+              <>
+                <Rocket className="h-4 w-4 mr-2" />
+                {createToken ? "Deploy Agent & Create Token" : 
+                <>
+                  Deploy Agent 0.2 SOL
+                  <SolanaIcon className="h-4 w-4 mr-2" />
+                </>
+                }
+              </>
+            ))}
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Confirmation Dialog */}
+      {confirmationOpen && (
+        <Dialog open={confirmationOpen} onOpenChange={(open) => setConfirmationOpen(open)}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Deployment Successful!</DialogTitle>
+            </DialogHeader>
+            <Confetti
+              width={window.innerWidth}
+              height={window.innerHeight}
+              recycle={false}
+              numberOfPieces={200}
+            />
+            <div className="space-y-4 text-center">
+              <img src={agentData?.image || "/default-agent-image.png"} alt="Agent" className="w-32 h-32 mx-auto rounded-full" />
+              <p className="text-xl font-bold">{agentData?.name}</p>
+              {tokenData && (
+                <div>
+                  <p className="text-md">Token Created:</p>
+                  <p className="text-lg font-semibold">{tokenData?.address}</p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="default" onClick={() => setConfirmationOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   )
 }
