@@ -38,11 +38,10 @@ interface Agent {
 export function ChatDrawer({
   isOpen,
   onToggle,
-  AgentName = "Adam",
 }: ChatDrawerProps) {
   const [isMicActive, setIsMicActive] = useState(false);
   const [, setVolume] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, ] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>();
   const [agents, setAgents] = useState<Agent[]>([]);

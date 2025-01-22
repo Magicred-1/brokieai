@@ -6,9 +6,9 @@ function generate_characters(name: string, publicKey: string, privateKey: string
   return {
     // id: id,
     name: name,
-    plugins: ["solana"],
-    clients: ['DIRECT'],
-    modelProvider: 'OPENAI',
+    plugins: ['solana'],
+    clients: ['direct'],
+    modelProvider: 'openai',
     settings: {
       voice: { model: 'en_US-hfc_female-medium' },
       secrets: {
@@ -59,7 +59,7 @@ export const POST = async (req: Request) => {
         // Expecting the agent's name in the request body
         const requestData = await req.json();
 
-        const { name } = requestData;
+        const { name, walletAddress } = requestData;
         
 
         console.log('name', name);
@@ -67,6 +67,13 @@ export const POST = async (req: Request) => {
         if (!name) {
             return NextResponse.json(
             { error: 'Name is required in the request body.' },
+            { status: 400 }
+            );
+        }
+
+        if (!walletAddress) {
+            return NextResponse.json(
+            { error: 'Wallet Address is required in the request body.' },
             { status: 400 }
             );
         }
@@ -96,6 +103,7 @@ export const POST = async (req: Request) => {
                     lore: character.lore,
                     knowledge: character.knowledge,
                 },
+                owner: walletAddress,
             },
             ]);
 

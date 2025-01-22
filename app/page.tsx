@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
-import { Bot, Mic, Blocks, Cpu } from 'lucide-react'
+import { Bot, Mic, Blocks } from 'lucide-react'
 import { useRouter } from "next/navigation";
 import { WalletDialog } from "@/components/wallet-dialog";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { motion } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
 import SolanaIcon from "@/components/solana-icon";
+import MeteoraIcon from "@/components/meteora-icon";
 
 
 export default function LandingPage() {
@@ -70,7 +71,7 @@ export default function LandingPage() {
               </motion.h1>
               <p className="text-gray-400 text-lg md:text-xl mb-8 max-w-2xl mx-auto md:mx-0">
                 Build, deploy, and monetize AI agents on <SolanaIcon className="h-6 w-6 inline-block" /> Solana without writing code.
-                Just speak, configure, and launch your autonomous AI agents.
+                Use our no code interface to create voice-enabled agents in minutes.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 <Button className="bg-[#2683C0] hover:bg-[#1f6a9a] text-white px-8 py-6 text-lg"
@@ -117,15 +118,34 @@ export default function LandingPage() {
       {/* Features Grid */}
       <section className="py-12 md:py-20 bg-gradient-to-b from-[#020817] to-gray-900">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-12">
-            Create AI Agents with No-Code 🚀
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8">
+            Unlock the Power of No-Code AI
           </h2>
+          <p className="text-lg text-gray-400 mb-12 text-center">
+            Revolutionize your workflow with our intuitive, no-code platform. Create and deploy AI agents in minutes without writing a single line of code.
+          </p>
           <div className="grid md:grid-cols-4 gap-8">
             {[
-              { Icon: Blocks, title: "No-Code Interface", description: "Create AI agents without writing a single line of code. Just speak and configure." },
-              { Icon: Mic, title: "Voice Commands", description: "Interact with your AI agents using natural language voice commands. No coding required." },
-              { Icon: SolanaIcon, title: "Solana Integration", description: "Deploy agents directly to Solana blockchain with built-in wallet and token management." },
-              { Icon: Cpu, title: "AI Capabilities", description: "Leverage advanced AI models for natural language processing and autonomous decision-making." }
+              { 
+                Icon: Blocks, 
+                title: "No-Code Interface", 
+                description: "Build AI agents using our intuitive drag-and-drop interface. No coding skills required!" 
+              },
+              { 
+                Icon: Mic, 
+                title: "Voice Commands", 
+                description: "Interact with your AI agents using natural language voice commands. No more complex UIs." 
+              },
+              { 
+                Icon: SolanaIcon, 
+                title: "Solana Integration", 
+                description: "Deploy your agents directly to the Solana blockchain. Enjoy seamless integration and real-time updates." 
+              },
+              { 
+                Icon: MeteoraIcon, 
+                title: "Deploy on Meteora", 
+                description: "Monetize your AI agents on the Meteora marketplace enjoy lifetime fees on every transaction." 
+              },
             ].map((feature, index) => (
               <motion.div
                 key={index}
@@ -150,52 +170,56 @@ export default function LandingPage() {
         </div>
       </section>
 
+
       {/* Demo Section */}
       <section className="py-12 md:py-20 bg-gray-900">
         <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">Experience No-Code AI in Action</h2>
+          <p className="text-lg text-gray-400 text-center mb-12">
+            See how easy it is to create and deploy an AI agent using our intuitive platform.
+          </p>
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <h2 className="text-2xl md:text-3xl font-bold">Create an Agent in Minutes</h2>
-              <Card className="bg-gray-800">
+              <h3 className="text-xl font-bold">Create an Agent in Minutes and interact with it using voice commands.</h3>
+              <Card className="bg-gray-800 shadow-md">
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center space-x-3">
                     <Mic className="h-5 w-5 text-[#2683C0]" />
-                    <p className="text-gray-300">&quot;Create a trading bot that monitors SOL price&quot;</p>
+                    <p className="text-gray-300">&quot;Swap 2 SOL for TRUMP token&quot;</p>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Bot className="h-5 w-5 text-[#2683C0]" />
-                    <p className="text-gray-300">Configuring trading parameters...</p>
+                    <p className="text-gray-300">Automate your trades on Solana</p>
                   </div>
-                  <Button className="w-full bg-[#2683C0] hover:bg-[#1f6a9a] text-white"
+                  <Button
+                    className="w-full bg-[#2683C0] hover:bg-[#1f6a9a] text-white shadow-md"
                     effect={"shineHover"}
-                    onClick={
-                      () => {
-                        router.push('/create')
-                      }
-                    }
+                    onClick={() => {
+                      router.push('/create');
+                    }}
                   >
                     Deploy Agent
                   </Button>
                 </CardContent>
               </Card>
             </div>
-            <Card className="bg-gray-800">
-              <CardContent className="p-6">
-                <div className="aspect-video relative bg-black rounded-lg overflow-hidden">
-                  <Image
-                    src="/ai_creator.png"
-                    alt="AI Agent Interface Demo"
-                    layout="fill"
-                    objectFit="cover"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <div className="relative">
+              <div className="absolute top-0 left-0 h-full w-full bg-gray-800/50 backdrop-blur-md"></div>
+              <div className="aspect-video relative bg-black rounded-lg overflow-hidden shadow-md">
+                <Image
+                  src="/ai_creator.png"
+                  alt="AI Agent Interface Demo"
+                  layout="fill"
+                  objectFit="cover"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
+
+      {/* Stats Section
       <section className="py-12 md:py-20">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -218,7 +242,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* How It Works
       <section className="py-12 md:py-20 bg-gradient-to-b from-[#020817] to-[#041325]">
