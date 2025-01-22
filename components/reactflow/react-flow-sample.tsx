@@ -14,9 +14,10 @@ import {
   ReactFlowProvider,
   MiniMap,
   Panel,
+  useReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { ArrowRight, ArrowLeft, Rocket, Upload, TwitterIcon } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Rocket, Upload, TwitterIcon, Twitter, LinkIcon } from 'lucide-react'
 import { FaDiscord, FaTelegram } from "react-icons/fa";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import SolanaIcon from '../solana-icon'
@@ -27,7 +28,6 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '../ui/textarea'
 import { Avatar, AvatarImage } from '../ui/avatar'
-import { Twitter, LinkIcon } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
 import Confetti from 'react-confetti'
 
@@ -558,81 +558,88 @@ export const DeployDialog = () => {
   )
 }
 
-export default function ImprovedReactFlow() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-  const [isToolboxVisible, setIsToolboxVisible] = useState(true)
+// Flow.tsx component
+function Flow() {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [isToolboxVisible, setIsToolboxVisible] = useState(true);
+  const reactFlowInstance = useReactFlow();
 
-  const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges])
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
 
   const onDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault()
-      const reactFlowWrapper = event.currentTarget
-      const reactFlowBounds = reactFlowWrapper.getBoundingClientRect()
-      const type = event.dataTransfer.getData("application/reactflow")
-      if (!type) return
+      event.preventDefault();
+      const type = event.dataTransfer.getData("application/reactflow");
+      
+      if (!type) return;
 
-      const position = {
-        x: event.clientX - reactFlowBounds.left,
-        y: event.clientY - reactFlowBounds.top,
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      // Handle social media platform restrictions
+      const isSocialMedia = ['tool-21', 'tool-22', 'tool-23'].includes(type);
+      if (isSocialMedia) {
+        alert('Social media integrations coming soon!');
+        return;
       }
 
-      const newNode = {
-        id: `${type}-${+new Date()}`,
-        type: "default",
-        data: {
-          label:
-            toolboxCategories
-              .flatMap((category) => category.categories.flatMap((subCategory) => subCategory.items.map((item) => ({ ...item, label: typeof item.label === 'string' ? item.label : '' }))))
-              .find((node) => node.id === type)?.label ?? "Default Label",
-        },
-        position,
-        className:
-          "text-gray-800 bg-white dark:text-gray-100 dark:bg-gray-800 shadow-md rounded-lg p-4 border border-gray-200 dark:border-gray-700",
+      const newNode = createSolanaNode(type, position);
+      if (newNode) {
+        setNodes((nds) => nds.concat(newNode));
       }
-      setNodes((nds) => nds.concat(newNode))
     },
-    [setNodes, toolboxCategories],
-  )
+    [reactFlowInstance, setNodes]
+  );
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.dataTransfer.dropEffect = "move"
-  }, [])
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
 
-  const toggleToolboxVisibility = () => {
-    setIsToolboxVisible((prev) => !prev)
-  }
+  const toggleToolboxVisibility = () => setIsToolboxVisible(!isToolboxVisible);
 
   return (
-    <ReactFlowProvider>
-      <div className="flex h-screen">
-        <Toolbox
-          isVisible={isToolboxVisible}
-          toggleVisibility={toggleToolboxVisibility}
-          toolboxCategories={toolboxCategories}
-        />
-        <div className="react-flow flex-1 h-200vh relative" onDrop={onDrop} onDragOver={onDragOver}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            connectionMode={ConnectionMode.Loose}
-            fitView
-            className="bg-gray-50 dark:bg-gray-900"
-          >
-            <Background gap={12} size={1} />
-            <Controls className="bg-white text-black dark:bg-gray-800 shadow-md rounded-lg" />
-            <MiniMap className="bg-white dark:bg-gray-800 shadow-md rounded-lg" />
-            <Panel position="top-right" className="space-x-2">
-              <DeployDialog />
-            </Panel>
-          </ReactFlow>
-        </div>
+    <div className="flex h-screen">
+      <Toolbox
+        isVisible={isToolboxVisible}
+        toggleVisibility={toggleToolboxVisibility}
+        toolboxCategories={toolboxCategories}
+      />
+      <div className="react-flow flex-1 h-[200vh] relative" onDrop={onDrop} onDragOver={onDragOver}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={solanaNodeTypes}
+          connectionMode={ConnectionMode.Loose}
+          fitView
+          className="bg-gray-50 dark:bg-gray-900"
+        >
+          <Background gap={12} size={1} />
+          <Controls className="bg-white dark:bg-gray-800 shadow-md rounded-lg" />
+          <MiniMap className="bg-white dark:bg-gray-800 shadow-md rounded-lg" />
+          <Panel position="top-right" className="space-x-2">
+            <DeployDialog />
+          </Panel>
+        </ReactFlow>
       </div>
+    </div>
+  );
+}
+
+// FlowWithProvider.tsx component (main export)
+export default function FlowWithProvider() {
+  return (
+    <ReactFlowProvider>
+      <Flow />
     </ReactFlowProvider>
   )
 }
