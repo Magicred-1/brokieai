@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import {
   ReactFlow,
   Background,
@@ -16,7 +16,7 @@ import {
   Panel,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { ArrowRight, ArrowLeft, Rocket, Upload, TwitterIcon, Maximize2, Minimize2 } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Rocket, Upload, TwitterIcon } from 'lucide-react'
 import { FaDiscord, FaTelegram } from "react-icons/fa";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import SolanaIcon from '../solana-icon'
@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '../ui/textarea'
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar'
+import { Avatar, AvatarImage } from '../ui/avatar'
 import { Twitter, LinkIcon } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
 import Confetti from 'react-confetti'
@@ -53,12 +53,12 @@ interface AgentDetails {
 interface TokenDetails {
   name: string
   symbol: string
-  solAmount: string
   initialBuyAmount: number
   twitter: string
   telegram: string
   website: string
 }
+
 const toolboxCategories = [
   {
     name: (
@@ -210,7 +210,6 @@ export const DeployDialog = () => {
   const [tokenDetails, setTokenDetails] = useState<TokenDetails>({
     name: "",
     symbol: "",
-    solAmount: "0.00",
     initialBuyAmount: 0.1,
     twitter: "",
     telegram: "",
@@ -339,7 +338,6 @@ export const DeployDialog = () => {
               <div className="flex flex-col items-center gap-2">
                 <Avatar className="h-24 w-24">
                   <AvatarImage src={previewUrl ?? undefined} alt="Agent Preview" />
-                  <AvatarFallback>AG</AvatarFallback>
                 </Avatar>
                 <Label htmlFor="image-upload" className="cursor-pointer">
                   <div className="flex items-center gap-2 rounded-md bg-secondary px-3 py-1 text-xs hover:bg-secondary/80">
@@ -448,7 +446,9 @@ export const DeployDialog = () => {
                     max="10"
                     step="0.1"
                     className="w-20"
-                  />
+                  >
+                    <SolanaIcon className="h-6 w-6" />
+                  </Input>
                   <SolanaIcon className="h-6 w-6" />
                 </div>
               </div>
@@ -510,17 +510,15 @@ export const DeployDialog = () => {
             className="bg-blue-500 hover:bg-blue-600 text-white"
             disabled={loading}
           >
-            {loading ? "Deploying..." : (step === 1 ? "Next" : (
-              <>
-                <Rocket className="h-4 w-4 mr-2" />
-                {createToken ? "Deploy Agent 0.5 SOL" :
+            {loading ? "Deploying..." : (
+              step === 1 ? "Next" : (
                 <>
-                  Deploy Agent 0.2 SOL
-                  <SolanaIcon className="h-4 w-4 mr-2" />
+                  <Rocket className="h-4 w-4 mr-2" />
+                  {createToken ? "Deploy Agent 0.5 SOL" : "Deploy Agent 0.2 SOL"}
+                  {!createToken && <SolanaIcon className="h-4 w-4 mr-2" />}
                 </>
-                }
-              </>
-            ))}
+              )
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -564,7 +562,6 @@ export default function ImprovedReactFlow() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [isToolboxVisible, setIsToolboxVisible] = useState(true)
-  const [isFullScreen, setIsFullScreen] = useState(false)
 
   const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges])
 
@@ -587,8 +584,8 @@ export default function ImprovedReactFlow() {
         data: {
           label:
             toolboxCategories
-              .flatMap((category) => category.categories.flatMap((subCategory) => subCategory.items))
-              .find((node) => node.id === type)?.label || "Default Label",
+              .flatMap((category) => category.categories.flatMap((subCategory) => subCategory.items.map((item) => ({ ...item, label: typeof item.label === 'string' ? item.label : '' }))))
+              .find((node) => node.id === type)?.label ?? "Default Label",
         },
         position,
         className:
@@ -607,30 +604,6 @@ export default function ImprovedReactFlow() {
   const toggleToolboxVisibility = () => {
     setIsToolboxVisible((prev) => !prev)
   }
-
-  const toggleFullScreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen()
-      setIsFullScreen(true)
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen()
-        setIsFullScreen(false)
-      }
-    }
-  }
-
-  useEffect(() => {
-    const handleFullScreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement)
-    }
-
-    document.addEventListener("fullscreenchange", handleFullScreenChange)
-
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullScreenChange)
-    }
-  }, [])
 
   return (
     <ReactFlowProvider>
@@ -652,7 +625,7 @@ export default function ImprovedReactFlow() {
             className="bg-gray-50 dark:bg-gray-900"
           >
             <Background gap={12} size={1} />
-            <Controls className="bg-white dark:bg-gray-800 shadow-md rounded-lg" />
+            <Controls className="bg-white text-black dark:bg-gray-800 shadow-md rounded-lg" />
             <MiniMap className="bg-white dark:bg-gray-800 shadow-md rounded-lg" />
             <Panel position="top-right" className="space-x-2">
               <DeployDialog />

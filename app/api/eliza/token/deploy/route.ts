@@ -110,17 +110,19 @@ export const POST = async (req: Request) => {
     if (txResult.success) {
       // Insert token address and other details into Supabase
       const { data, error } = await supabase
-        .from('configuration')
+        .from('tokens')
         .insert({
-          agent_id: agentID,
-          token_address: txResult.tokenAddress,
           name,
           symbol,
           description,
           twitter,
           telegram,
           website,
+          agent_id: agentID,
+          token_address: txResult.tokenAddress,
         });
+
+        console.log(data)
 
       if (error) {
         return NextResponse.json({ error: "Failed to save token data to Supabase." }, { status: 500 });
