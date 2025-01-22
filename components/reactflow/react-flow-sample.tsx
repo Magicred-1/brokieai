@@ -14,7 +14,8 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { ArrowRight, ArrowLeft, Rocket, Upload } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Rocket, Upload, TwitterIcon } from 'lucide-react'
+import { FaDiscord, FaTelegram } from "react-icons/fa";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import SolanaIcon from '../solana-icon'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
@@ -56,7 +57,6 @@ interface TokenDetails {
   telegram: string
   website: string
 }
-
 const toolboxCategories = [
   {
     name: (
@@ -106,6 +106,23 @@ const toolboxCategories = [
         ]
       }
     ]
+  },
+  {
+    name: (
+      <div className="flex items-center space-x-2">
+        <span>Social Media</span>
+      </div>
+    ),
+    categories: [
+      {
+        name: "Social Platforms",
+        items: [
+          { id: 'tool-21', label: <><TwitterIcon className="w-4 h-4 mr-2" />Twitter</> },
+          { id: 'tool-22', label: <><FaDiscord className="w-4 h-4 mr-2" />Discord</> },
+          { id: 'tool-23', label: <><FaTelegram className="w-4 h-4 mr-2" />Telegram</> },
+        ]
+      }
+    ]
   }
 ]
 
@@ -117,47 +134,66 @@ interface ToolboxCategory {
   }[];
 }
 
-function Toolbox({ isVisible, toggleVisibility, toolboxCategories } : { isVisible: boolean, toggleVisibility: () => void, toolboxCategories: ToolboxCategory[] }) {
+function Toolbox({
+  isVisible,
+  toggleVisibility,
+  toolboxCategories,
+}: {
+  isVisible: boolean
+  toggleVisibility: () => void
+  toolboxCategories: ToolboxCategory[]
+}) {
   return (
     <div
-      className={`transition-width duration-300 ease-in-out h-full overflow-y-auto border-r border-gray-300 dark:border-gray-700 ${
-        isVisible ? 'w-72 p-4' : 'w-0 p-0'
+      className={`transition-all duration-300 ease-in-out h-full overflow-y-auto border-r border-gray-300 dark:border-gray-700 ${
+        isVisible ? 'w-80 p-6' : 'w-0 p-0'
       }`}
     >
       <button
         onClick={toggleVisibility}
         className={`absolute top-1/2 -translate-y-1/2 p-2 bg-gray-300 dark:bg-gray-700 rounded shadow-md cursor-pointer z-10 group ${
-          isVisible ? 'left-72' : 'left-0'
+          isVisible ? 'left-80' : 'left-0'
         }`}
       >
         {isVisible ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
-        <span className="absolute top-1/2 left-full ml-2 -translate-y-1/2 bg-gray-800 text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+        <span className="absolute top-1/2 left-full ml-3 -translate-y-1/2 bg-gray-800 text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
           {isVisible ? 'Close Toolbox' : 'Open Toolbox'}
         </span>
       </button>
 
       {isVisible && (
         <>
-          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Components</h4>
+          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">Components</h4>
           {toolboxCategories.map((parentCategory, parentIndex) => (
-            <div key={parentIndex}>
-              <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
-                {parentCategory.name}
-              </h4>
+            <div key={parentIndex} className="mb-8">
+              <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{parentCategory.name}</h4>
               <Accordion type="single" collapsible className="w-full">
                 {parentCategory.categories.map((category, index) => (
                   <AccordionItem key={index} value={`item-${parentIndex}-${index}`}>
-                    <AccordionTrigger className="text-md font-medium text-gray-700 dark:text-gray-300">
+                    <AccordionTrigger className="text-md font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200">
                       {category.name}
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="ml-2">
+                      {category.name === 'Social Platforms' && (
+                        <div className="relative text-center mb-6">
+                          <div className="absolute inset-0 flex justify-center items-center">
+                            <span className="text-5xl font-extrabold text-gray-500 transform rotate-45 -translate-x-1/2 -translate-y-1/2">
+                              SOON
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="ml-2 space-y-3">
                         {category.items.map((node) => (
                           <div
                             key={node.id}
-                            onDragStart={(event) => event.dataTransfer.setData('application/reactflow', node.id)}
+                            onDragStart={(event) =>
+                              event.dataTransfer.setData('application/reactflow', node.id)
+                            }
                             draggable
-                            className="p-2 my-2 border border-gray-300 dark:border-gray-700 rounded cursor-grab text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                            className={`p-3 text-lg font-medium border border-gray-300 dark:border-gray-700 rounded-md cursor-grab text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 ${
+                              category.name === 'Social Platforms' ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                           >
                             {node.label}
                           </div>
@@ -202,6 +238,7 @@ export const DeployDialog = () => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000))
       const imageUrl = URL.createObjectURL(file)
+      // Need to implement IPFS upload here or not based on if we use Pump.fun for the deployment
       setAgentDetails((prevState) => ({ ...prevState, image: imageUrl }))
     } catch (error) {
       console.error("Image upload failed", error)

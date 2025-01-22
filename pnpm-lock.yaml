@@ -95,6 +95,9 @@ importers:
       react-dom:
         specifier: ^18.0.0
         version: 18.2.0(react@18.3.1)
+      react-icons:
+        specifier: ^5.4.0
+        version: 5.4.0(react@18.3.1)
       react-speech-kit:
         specifier: ^3.0.1
         version: 3.0.1(prop-types@15.8.1)(react@18.3.1)
@@ -6017,6 +6020,11 @@ packages:
         optional: true
       react-native:
         optional: true
+
+  react-icons@5.4.0:
+    resolution: {integrity: sha512-7eltJxgVt7X64oHh6wSWNwwbKTCtMfK35hcjvJS0yxEAhPM8oUKdS3+kqaW1vicIltw+kR2unHaa12S9pPALoQ==}
+    peerDependencies:
+      react: '*'
 
   react-international-phone@4.2.5:
     resolution: {integrity: sha512-jXxeEG5jvwivwSb/ImIIwIH1lSGD6VSy4W2CaInBiXo2PWnDj2BTzC0sAyZzNJarT7NX9kPdUHyGyyfziS5Rpw==}
@@ -14363,6 +14371,10 @@ snapshots:
     optionalDependencies:
       react-dom: 18.2.0(react@18.3.1)
       react-native: 0.74.0(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@19.0.7)(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10)
+
+  react-icons@5.4.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
 
   react-international-phone@4.2.5(react@18.3.1):
     dependencies:
