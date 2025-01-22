@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Disclaimer from '@/components/disclaimer'
 import Footer from '@/components/footer'
 import { Header } from '@/components/header'
-import MyReactFlow from '@/components/reactflow/react-flow-sample'
+import FlowWithProvider from '@/components/reactflow/react-flow-sample'
 
 export default function Home() {
     const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false)
@@ -15,7 +15,7 @@ export default function Home() {
         <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-300">
             <Header isRightDrawerOpen={isRightDrawerOpen} onToggleRightDrawer={toggleRightDrawer} />
             {/* React Flow component here */}
-            <MyReactFlow />
+            <FlowWithProvider />
             <Disclaimer />
             <Footer />
         </div>

@@ -112,7 +112,7 @@ export const POST = async (req: Request) => {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json("Agent created successfully!");
+    return NextResponse.json({ message: "Agent created successfully!", data: supabaseData })
   } catch (error) {
     return NextResponse.json({ error: error }, { status: 500 });
   }

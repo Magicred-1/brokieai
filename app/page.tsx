@@ -11,7 +11,8 @@ import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { motion } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
 import SolanaIcon from "@/components/solana-icon";
-import MeteoraIcon from "@/components/meteora-icon";
+// import MeteoraIcon from "@/components/meteora-icon";
+import PumpFunIcon from "@/components/pumfun-icon";
 
 
 export default function LandingPage() {
@@ -142,9 +143,9 @@ export default function LandingPage() {
                 description: "Deploy your agents directly to the Solana blockchain. Enjoy seamless integration and real-time updates." 
               },
               { 
-                Icon: MeteoraIcon, 
-                title: "Deploy on Meteora", 
-                description: "Monetize your AI agents on the Meteora marketplace enjoy lifetime fees on every transaction." 
+                Icon: PumpFunIcon, 
+                title: "Deploy on Pump.fun", 
+                description: "Launching a token the Pump.fun to your agent directly from our platform link to your agent."
               },
             ].map((feature, index) => (
               <motion.div

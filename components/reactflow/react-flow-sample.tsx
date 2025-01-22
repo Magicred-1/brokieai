@@ -12,9 +12,12 @@ import {
   Connection,
   ConnectionMode,
   ReactFlowProvider,
+  MiniMap,
+  Panel,
+  useReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { ArrowRight, ArrowLeft, Rocket, Upload, TwitterIcon } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Rocket, Upload, TwitterIcon, Twitter, LinkIcon } from 'lucide-react'
 import { FaDiscord, FaTelegram } from "react-icons/fa";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import SolanaIcon from '../solana-icon'
@@ -24,8 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '../ui/textarea'
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar'
-import { Twitter, LinkIcon } from 'lucide-react'
+import { Avatar, AvatarImage } from '../ui/avatar'
 import { Slider } from '@/components/ui/slider'
 import Confetti from 'react-confetti'
 
@@ -51,12 +53,12 @@ interface AgentDetails {
 interface TokenDetails {
   name: string
   symbol: string
-  solAmount: string
   initialBuyAmount: number
   twitter: string
   telegram: string
   website: string
 }
+
 const toolboxCategories = [
   {
     name: (
@@ -110,7 +112,7 @@ const toolboxCategories = [
   {
     name: (
       <div className="flex items-center space-x-2">
-        <span>Social Media</span>
+        <span>Social Media Integration</span>
       </div>
     ),
     categories: [
@@ -130,7 +132,7 @@ interface ToolboxCategory {
   name: React.ReactNode;
   categories: {
     name: string;
-    items: { id: string; label: string }[];
+    items: { id: string; label: React.ReactNode }[];
   }[];
 }
 
@@ -145,19 +147,21 @@ function Toolbox({
 }) {
   return (
     <div
-      className={`transition-all duration-300 ease-in-out h-full overflow-y-auto border-r border-gray-300 dark:border-gray-700 ${
-        isVisible ? 'w-80 p-6' : 'w-0 p-0'
+      className={`transition-all duration-300 ease-in-out h-full overflow-y-auto border-r border-gray-300 dark:border-gray-700 bg-blue-100 dark:bg-gray-900 ${
+        isVisible ? "w-80 p-6" : "w-0 p-0"
       }`}
     >
       <button
         onClick={toggleVisibility}
-        className={`absolute top-1/2 -translate-y-1/2 p-2 bg-gray-300 dark:bg-gray-700 rounded shadow-md cursor-pointer z-10 group ${
-          isVisible ? 'left-80' : 'left-0'
+        className={`absolute top-1/2 -translate-y-1/2 p-2 bg-[#0061DF] dark:bg-[#0061DF] rounded-full shadow-md cursor-pointer z-10 group ${
+          isVisible ? "left-80" : "left-0"
         }`}
+        aria-label={isVisible ? "Close Toolbox" : "Open Toolbox"}
       >
         {isVisible ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
+        <span className="sr-only">{isVisible ? "Close Toolbox" : "Open Toolbox"}</span>
         <span className="absolute top-1/2 left-full ml-3 -translate-y-1/2 bg-gray-800 text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-          {isVisible ? 'Close Toolbox' : 'Open Toolbox'}
+          {isVisible ? "Close Toolbox" : "Open Toolbox"}
         </span>
       </button>
 
@@ -174,25 +178,14 @@ function Toolbox({
                       {category.name}
                     </AccordionTrigger>
                     <AccordionContent>
-                      {category.name === 'Social Platforms' && (
-                        <div className="relative text-center mb-6">
-                          <div className="absolute inset-0 flex justify-center items-center">
-                            <span className="text-5xl font-extrabold text-gray-500 transform rotate-45 -translate-x-1/2 -translate-y-1/2">
-                              SOON
-                            </span>
-                          </div>
-                        </div>
-                      )}
                       <div className="ml-2 space-y-3">
-                        {category.items.map((node) => (
+                        {category.items.map((node: { id: string; label: React.ReactNode | string }) => (
                           <div
                             key={node.id}
-                            onDragStart={(event) =>
-                              event.dataTransfer.setData('application/reactflow', node.id)
-                            }
+                            onDragStart={(event) => event.dataTransfer.setData("application/reactflow", node.id)}
                             draggable
-                            className={`p-3 text-lg font-medium border border-gray-300 dark:border-gray-700 rounded-md cursor-grab text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 ${
-                              category.name === 'Social Platforms' ? 'opacity-50 cursor-not-allowed' : ''
+                            className={`p-3 text-lg font-medium border border-gray-300 dark:border-gray-700 rounded-md cursor-grab text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors duration-200 ${
+                              category.name === "Social Platforms" ? "opacity-50 cursor-not-allowed" : ""
                             }`}
                           >
                             {node.label}
@@ -217,7 +210,6 @@ export const DeployDialog = () => {
   const [tokenDetails, setTokenDetails] = useState<TokenDetails>({
     name: "",
     symbol: "",
-    solAmount: "0.00",
     initialBuyAmount: 0.1,
     twitter: "",
     telegram: "",
@@ -346,7 +338,6 @@ export const DeployDialog = () => {
               <div className="flex flex-col items-center gap-2">
                 <Avatar className="h-24 w-24">
                   <AvatarImage src={previewUrl ?? undefined} alt="Agent Preview" />
-                  <AvatarFallback>AG</AvatarFallback>
                 </Avatar>
                 <Label htmlFor="image-upload" className="cursor-pointer">
                   <div className="flex items-center gap-2 rounded-md bg-secondary px-3 py-1 text-xs hover:bg-secondary/80">
@@ -379,7 +370,7 @@ export const DeployDialog = () => {
                 value={agentDetails.description}
                 onChange={(e) => setAgentDetails({ ...agentDetails, description: e.target.value })}
                 placeholder={
-                  "- What does your agent do?\n- What are its capabilities?\n- How can users interact with it?"
+                  "- What does your agent do?\n- What are its capabilities?\n- How can users interact with it? \n Use a \" - \" for each point."
                 }
                 className="h-24"
               />
@@ -455,7 +446,9 @@ export const DeployDialog = () => {
                     max="10"
                     step="0.1"
                     className="w-20"
-                  />
+                  >
+                    <SolanaIcon className="h-6 w-6" />
+                  </Input>
                   <SolanaIcon className="h-6 w-6" />
                 </div>
               </div>
@@ -517,17 +510,15 @@ export const DeployDialog = () => {
             className="bg-blue-500 hover:bg-blue-600 text-white"
             disabled={loading}
           >
-            {loading ? "Deploying..." : (step === 1 ? "Next" : (
-              <>
-                <Rocket className="h-4 w-4 mr-2" />
-                {createToken ? "Deploy Agent & Create Token" : 
+            {loading ? "Deploying..." : (
+              step === 1 ? "Next" : (
                 <>
-                  Deploy Agent 0.2 SOL
-                  <SolanaIcon className="h-4 w-4 mr-2" />
+                  <Rocket className="h-4 w-4 mr-2" />
+                  {createToken ? "Deploy Agent 0.5 SOL" : "Deploy Agent 0.2 SOL"}
+                  {!createToken && <SolanaIcon className="h-4 w-4 mr-2" />}
                 </>
-                }
-              </>
-            ))}
+              )
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -567,78 +558,88 @@ export const DeployDialog = () => {
   )
 }
 
-export default function MyReactFlow() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-
-  const [isToolboxVisible, setIsToolboxVisible] = useState(true)
+// Flow.tsx component
+function Flow() {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [isToolboxVisible, setIsToolboxVisible] = useState(true);
+  const reactFlowInstance = useReactFlow();
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
-  )
+  );
 
   const onDrop = useCallback(
-    (event: any) => {
-      event.preventDefault()
-      const reactFlowWrapper = event.target.closest('.react-flow')
-      const reactFlowBounds = reactFlowWrapper.getBoundingClientRect()
-      const type = event.dataTransfer.getData('application/reactflow')
-      if (!type) return
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const type = event.dataTransfer.getData("application/reactflow");
+      
+      if (!type) return;
 
-      const position = {
-        x: event.clientX - reactFlowBounds.left,
-        y: event.clientY - reactFlowBounds.top,
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      // Handle social media platform restrictions
+      const isSocialMedia = ['tool-21', 'tool-22', 'tool-23'].includes(type);
+      if (isSocialMedia) {
+        alert('Social media integrations coming soon!');
+        return;
       }
 
-      const newNode = {
-        id: `${type}-${+new Date()}`,
-        type: 'default',
-        data: { label: toolboxCategories.flatMap(category => category.categories.flatMap(subCategory => subCategory.items)).find((node) => node.id === type)?.label ?? 'Default Label' },
-        position,
-        className: 'text-gray-800 bg-white dark:text-gray-100 dark:bg-gray-800',
+      const newNode = createSolanaNode(type, position);
+      if (newNode) {
+        setNodes((nds) => nds.concat(newNode));
       }
-      setNodes((nds) => nds.concat(newNode))
     },
-    [setNodes]
-  )
+    [reactFlowInstance, setNodes]
+  );
 
-  const onDragOver = useCallback((event: any) => {
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-  }, [])
+  const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
 
-  const toggleToolboxVisibility = () => {
-    setIsToolboxVisible((prev) => !prev)
-  }
+  const toggleToolboxVisibility = () => setIsToolboxVisible(!isToolboxVisible);
 
   return (
-    <ReactFlowProvider>
-      <div className="flex h-[90vh]">
-        <Toolbox isVisible={isToolboxVisible} toggleVisibility={toggleToolboxVisibility} toolboxCategories={toolboxCategories} />
-        <div
-          className="react-flow flex-1 h-full relative"
-          onDrop={onDrop}
-          onDragOver={onDragOver}
+    <div className="flex h-screen">
+      <Toolbox
+        isVisible={isToolboxVisible}
+        toggleVisibility={toggleToolboxVisibility}
+        toolboxCategories={toolboxCategories}
+      />
+      <div className="react-flow flex-1 h-[200vh] relative" onDrop={onDrop} onDragOver={onDragOver}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={solanaNodeTypes}
+          connectionMode={ConnectionMode.Loose}
+          fitView
+          className="bg-gray-50 dark:bg-gray-900"
         >
-          <div className="absolute top-4 right-4 z-10">
+          <Background gap={12} size={1} />
+          <Controls className="bg-white dark:bg-gray-800 shadow-md rounded-lg" />
+          <MiniMap className="bg-white dark:bg-gray-800 shadow-md rounded-lg" />
+          <Panel position="top-right" className="space-x-2">
             <DeployDialog />
-          </div>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            colorMode='dark'
-            connectionMode={ConnectionMode.Loose}
-            fitView
-          >
-            <Background gap={12} size={1} />
-            <Controls />
-          </ReactFlow>
-        </div>
+          </Panel>
+        </ReactFlow>
       </div>
+    </div>
+  );
+}
+
+// FlowWithProvider.tsx component (main export)
+export default function FlowWithProvider() {
+  return (
+    <ReactFlowProvider>
+      <Flow />
     </ReactFlowProvider>
   )
 }
