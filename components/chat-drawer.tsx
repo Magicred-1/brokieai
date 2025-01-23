@@ -78,7 +78,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
       .catch((error) => console.error("Error fetching agents:", error))
   }, [userAddress])
 
-  const handleAgentChange = (agent: { id: string; name: string }) => {
+  const handleAgentChange = (agent: { id: string; name: string, walletAddress: string }) => {
     setSelectedAgent(agent)
   }
 
