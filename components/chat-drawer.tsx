@@ -28,7 +28,7 @@ interface ChatDrawerProps {
 interface Agent {
   id: string
   name: string
-  walletAddress: string
+  tokenAddress?: string
 }
 
 export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
@@ -84,7 +84,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
 
   const onCopy = () => {
     if (!selectedAgent) return;
-    navigator.clipboard.writeText(selectedAgent.walletAddress)
+    navigator.clipboard.writeText(selectedAgent.tokenAddress ?? "")
     toast.success("Address copied to clipboard.")
   }
 
@@ -333,7 +333,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             <div className="flex items-center justify-between">
               <SheetTitle className="text-2xl">Chat with {selectedAgent?.name}
                 {
-                  agents.length > 0 ? <Button variant={"secondary"} onClick={onCopy}><Copy /> Copy Address</Button> : null
+                  selectedAgent?.tokenAddress  ? <Button variant={"secondary"} onClick={onCopy}><Copy /> Copy Address</Button> : null
                 }
               </SheetTitle>
             </div>
@@ -343,7 +343,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             <div className="px-6 py-4">
               <AgentSelector
                 agents={agents}
-                selectedAgent={selectedAgent ?? { id: "", name: "Create your first agent to get started", walletAddress: "" }}
+                selectedAgent={selectedAgent ?? { id: "", name: "Create your first agent to get started", tokenAddress: "" }}
                 onAgentChange={handleAgentChange}
               />
             </div>

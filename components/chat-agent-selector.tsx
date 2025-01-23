@@ -13,7 +13,7 @@ import {
 interface Agent {
   id: string;
   name: string;
-  walletAddress: string;
+  tokenAddress: string;
 }
 
 interface AgentSelectorProps {
