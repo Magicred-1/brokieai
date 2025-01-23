@@ -343,7 +343,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             <div className="px-6 py-4">
               <AgentSelector
                 agents={agents}
-                selectedAgent={selectedAgent ?? { id: "", name: "Create your first agent to get started", tokenAddress: "" }}
+                selectedAgent={selectedAgent ?? { id: "", name: "Create your first agent to get started", tokenAddress: "" } as Agent}
                 onAgentChange={handleAgentChange}
               />
             </div>
