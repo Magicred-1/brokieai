@@ -53,9 +53,9 @@ import { Slider } from "@/components/ui/slider";
 import Confetti from "react-confetti";
 import {
   createSolanaNode,
-  SolanaNodeData,
+  // SolanaNodeData,
   solanaNodeTypes,
-  TokenDeployNode,
+  // TokenDeployNode,
 } from "./nodes/solana-nodes";
 
 const initialNodes = [
