@@ -40,4 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+<<<<<<< .merge_file_qHH1fo
+=======
+# misc
+>>>>>>> .merge_file_auPv0z
 cuda-repo-ubuntu2404-12-6-local_12.6.3-560.35.05-1_amd64.deb

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client'
+"use client";
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -15,55 +15,82 @@ import {
   MiniMap,
   Panel,
   useReactFlow,
-} from '@xyflow/react'
-import '@xyflow/react/dist/style.css'
-import { ArrowRight, ArrowLeft, Rocket, Upload, TwitterIcon, Twitter, LinkIcon } from 'lucide-react'
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Rocket,
+  Upload,
+  TwitterIcon,
+  Twitter,
+  LinkIcon,
+} from "lucide-react";
 import { FaDiscord, FaTelegram } from "react-icons/fa";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
-import SolanaIcon from '../solana-icon'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
-import { useDynamicContext } from '@dynamic-labs/sdk-react-core'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '../ui/textarea'
-import { Avatar, AvatarImage } from '../ui/avatar'
-import { Slider } from '@/components/ui/slider'
-import Confetti from 'react-confetti'
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import SolanaIcon from "../solana-icon";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "../ui/textarea";
+import { Avatar, AvatarImage } from "../ui/avatar";
+import { Slider } from "@/components/ui/slider";
+import Confetti from "react-confetti";
+import {
+  createSolanaNode,
+  SolanaNodeData,
+  solanaNodeTypes,
+  TokenDeployNode,
+} from "./nodes/solana-nodes";
 
 const initialNodes = [
   {
-    id: '1',
-    type: 'input',
-    data: { label: '🤖 My AI Agent' },
+    id: "1",
+    type: "input",
+    data: { label: "🤖 My AI Agent" },
     position: { x: 250, y: 25 },
-    className: 'text-gray-800 bg-white dark:text-gray-100 dark:bg-gray-800',
+    className: "text-gray-800 bg-white dark:text-gray-100 dark:bg-gray-800",
   },
-]
+];
 
-const initialEdges: any[] = []
+const initialEdges: any[] = [];
 
 interface AgentDetails {
-  name: string
-  description: string
-  image: string
-  lore?: string // Add the 'lore' property
+  name: string;
+  description: string;
+  image: string;
+  lore?: string; // Add the 'lore' property
 }
 
 interface TokenDetails {
-  name: string
-  symbol: string
-  initialBuyAmount: number
-  twitter: string
-  telegram: string
-  website: string
+  name: string;
+  symbol: string;
+  initialBuyAmount: number;
+  twitter: string;
+  telegram: string;
+  website: string;
 }
 
 const toolboxCategories = [
   {
     name: (
       <div className="flex items-center space-x-2">
-        <SolanaIcon className='w-5 h-5' />
+        <SolanaIcon className="w-5 h-5" />
         <span>Solana</span>
       </div>
     ),
@@ -71,43 +98,43 @@ const toolboxCategories = [
       {
         name: "Token Management",
         items: [
-          { id: 'tool-2', label: '💎 Deploy SPL Tokens' },
-          { id: 'tool-3', label: '📤 Transfer Assets' },
-          { id: 'tool-4', label: '💰 Check Balances' },
-          { id: 'tool-5', label: '🔒 Stake SOL' },
-        ]
+          { id: "tool-2", label: "💎 Deploy SPL Tokens" },
+          { id: "tool-3", label: "📤 Transfer Assets" },
+          { id: "tool-4", label: "💰 Check Balances" },
+          { id: "tool-5", label: "🔒 Stake SOL" },
+        ],
       },
       {
         name: "NFT Operations",
         items: [
-          { id: 'tool-6', label: '🎯 ZK Compressed Airdrop' },
-          { id: 'tool-7', label: '🎨 Create NFT Collection' },
-          { id: 'tool-8', label: '🏷️ Mint and List NFTs' },
-          { id: 'tool-9', label: '💫 List NFT for Sale' },
-          { id: 'tool-10', label: '📝 Manage NFT Metadata' },
-          { id: 'tool-11', label: '👑 Configure Royalties' },
-        ]
+          { id: "tool-6", label: "🎯 ZK Compressed Airdrop" },
+          { id: "tool-7", label: "🎨 Create NFT Collection" },
+          { id: "tool-8", label: "🏷️ Mint and List NFTs" },
+          { id: "tool-9", label: "💫 List NFT for Sale" },
+          { id: "tool-10", label: "📝 Manage NFT Metadata" },
+          { id: "tool-11", label: "👑 Configure Royalties" },
+        ],
       },
       {
         name: "DeFi & Trading",
         items: [
-          { id: 'tool-12', label: '🔄 Jupiter Token Swap' },
-          { id: 'tool-13', label: '🌊 Raydium Pool Create' },
-          { id: 'tool-14', label: '🌀 Orca Whirlpool Trade' },
-          { id: 'tool-15', label: '📊 Manifest Limit Orders' },
-          { id: 'tool-16', label: '📈 Pyth Price Oracle' },
-          { id: 'tool-17', label: '📑 Drift Trading Tools' },
-        ]
+          { id: "tool-12", label: "🔄 Jupiter Token Swap" },
+          { id: "tool-13", label: "🌊 Raydium Pool Create" },
+          { id: "tool-14", label: "🌀 Orca Whirlpool Trade" },
+          { id: "tool-15", label: "📊 Manifest Limit Orders" },
+          { id: "tool-16", label: "📈 Pyth Price Oracle" },
+          { id: "tool-17", label: "📑 Drift Trading Tools" },
+        ],
       },
       {
         name: "Utility & Infrastructure",
         items: [
-          { id: 'tool-18', label: '⚒️ Gib Work Tasks' },
-          { id: 'tool-19', label: '🔍 SNS Domain Tools' },
-          { id: 'tool-20', label: '⚡ Solayer Staking' },
-        ]
-      }
-    ]
+          { id: "tool-18", label: "⚒️ Gib Work Tasks" },
+          { id: "tool-19", label: "🔍 SNS Domain Tools" },
+          { id: "tool-20", label: "⚡ Solayer Staking" },
+        ],
+      },
+    ],
   },
   {
     name: (
@@ -119,14 +146,38 @@ const toolboxCategories = [
       {
         name: "Social Platforms",
         items: [
-          { id: 'tool-21', label: <><TwitterIcon className="w-4 h-4 mr-2" />Twitter</> },
-          { id: 'tool-22', label: <><FaDiscord className="w-4 h-4 mr-2" />Discord</> },
-          { id: 'tool-23', label: <><FaTelegram className="w-4 h-4 mr-2" />Telegram</> },
-        ]
-      }
-    ]
-  }
-]
+          {
+            id: "tool-21",
+            label: (
+              <>
+                <TwitterIcon className="w-4 h-4 mr-2" />
+                Twitter
+              </>
+            ),
+          },
+          {
+            id: "tool-22",
+            label: (
+              <>
+                <FaDiscord className="w-4 h-4 mr-2" />
+                Discord
+              </>
+            ),
+          },
+          {
+            id: "tool-23",
+            label: (
+              <>
+                <FaTelegram className="w-4 h-4 mr-2" />
+                Telegram
+              </>
+            ),
+          },
+        ],
+      },
+    ],
+  },
+];
 
 interface ToolboxCategory {
   name: React.ReactNode;
@@ -141,9 +192,9 @@ function Toolbox({
   toggleVisibility,
   toolboxCategories,
 }: {
-  isVisible: boolean
-  toggleVisibility: () => void
-  toolboxCategories: ToolboxCategory[]
+  isVisible: boolean;
+  toggleVisibility: () => void;
+  toolboxCategories: ToolboxCategory[];
 }) {
   return (
     <div
@@ -159,7 +210,9 @@ function Toolbox({
         aria-label={isVisible ? "Close Toolbox" : "Open Toolbox"}
       >
         {isVisible ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
-        <span className="sr-only">{isVisible ? "Close Toolbox" : "Open Toolbox"}</span>
+        <span className="sr-only">
+          {isVisible ? "Close Toolbox" : "Open Toolbox"}
+        </span>
         <span className="absolute top-1/2 left-full ml-3 -translate-y-1/2 bg-gray-800 text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
           {isVisible ? "Close Toolbox" : "Open Toolbox"}
         </span>
@@ -167,30 +220,49 @@ function Toolbox({
 
       {isVisible && (
         <>
-          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">Components</h4>
+          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
+            Components
+          </h4>
           {toolboxCategories.map((parentCategory, parentIndex) => (
             <div key={parentIndex} className="mb-8">
-              <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{parentCategory.name}</h4>
+              <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
+                {parentCategory.name}
+              </h4>
               <Accordion type="single" collapsible className="w-full">
                 {parentCategory.categories.map((category, index) => (
-                  <AccordionItem key={index} value={`item-${parentIndex}-${index}`}>
+                  <AccordionItem
+                    key={index}
+                    value={`item-${parentIndex}-${index}`}
+                  >
                     <AccordionTrigger className="text-md font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200">
                       {category.name}
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="ml-2 space-y-3">
-                        {category.items.map((node: { id: string; label: React.ReactNode | string }) => (
-                          <div
-                            key={node.id}
-                            onDragStart={(event) => event.dataTransfer.setData("application/reactflow", node.id)}
-                            draggable
-                            className={`p-3 text-lg font-medium border border-gray-300 dark:border-gray-700 rounded-md cursor-grab text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors duration-200 ${
-                              category.name === "Social Platforms" ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
-                          >
-                            {node.label}
-                          </div>
-                        ))}
+                        {category.items.map(
+                          (node: {
+                            id: string;
+                            label: React.ReactNode | string;
+                          }) => (
+                            <div
+                              key={node.id}
+                              onDragStart={(event) =>
+                                event.dataTransfer.setData(
+                                  "application/reactflow",
+                                  node.id
+                                )
+                              }
+                              draggable
+                              className={`p-3 text-lg font-medium border border-gray-300 dark:border-gray-700 rounded-md cursor-grab text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors duration-200 ${
+                                category.name === "Social Platforms"
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              }`}
+                            >
+                              {node.label}
+                            </div>
+                          )
+                        )}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
@@ -201,12 +273,17 @@ function Toolbox({
         </>
       )}
     </div>
-  )
+  );
 }
 
 export const DeployDialog = () => {
-  const [step, setStep] = useState(1)
-  const [agentDetails, setAgentDetails] = useState<AgentDetails>({ name: "", description: "", image: "", lore: "" })
+  const [step, setStep] = useState(1);
+  const [agentDetails, setAgentDetails] = useState<AgentDetails>({
+    name: "",
+    description: "",
+    image: "",
+    lore: "",
+  });
   const [tokenDetails, setTokenDetails] = useState<TokenDetails>({
     name: "",
     symbol: "",
@@ -214,50 +291,50 @@ export const DeployDialog = () => {
     twitter: "",
     telegram: "",
     website: "",
-  })
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [createToken, setCreateToken] = useState<boolean>(false) // State for token creation checkbox
-  const [confirmationOpen, setConfirmationOpen] = useState(false)
-  const [agentData, setAgentData] = useState<any | null>(null) // To store agent data (name, image)
-  const [tokenData, setTokenData] = useState<any | null>(null) // To store token data (address)
+  });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [createToken, setCreateToken] = useState<boolean>(false); // State for token creation checkbox
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [agentData, setAgentData] = useState<any | null>(null); // To store agent data (name, image)
+  const [tokenData, setTokenData] = useState<any | null>(null); // To store token data (address)
 
-  const { user, primaryWallet, setShowAuthFlow } = useDynamicContext()
+  const { user, primaryWallet, setShowAuthFlow } = useDynamicContext();
 
   const uploadToIPFS = async (file: File) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      const imageUrl = URL.createObjectURL(file)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const imageUrl = URL.createObjectURL(file);
       // Need to implement IPFS upload here or not based on if we use Pump.fun for the deployment
-      setAgentDetails((prevState) => ({ ...prevState, image: imageUrl }))
+      setAgentDetails((prevState) => ({ ...prevState, image: imageUrl }));
     } catch (error) {
-      console.error("Image upload failed", error)
+      console.error("Image upload failed", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file)
-      const reader = new FileReader()
+      setImageFile(file);
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewUrl(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-      uploadToIPFS(file)
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      uploadToIPFS(file);
     }
-  }
+  };
 
   const handleDialogSubmit = async () => {
     if (!agentDetails.name || !primaryWallet?.address) {
-      return
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       // Step 1: Deploy Agent
@@ -271,11 +348,11 @@ export const DeployDialog = () => {
           description: agentDetails.description,
           walletAddress: primaryWallet.address,
         }),
-      })
+      });
 
-      const agentData = await agentResponse.json()
-      console.log("Agent deployed:", agentData)
-      setAgentData(agentData) // Store agent data for later use
+      const agentData = await agentResponse.json();
+      console.log("Agent deployed:", agentData);
+      setAgentData(agentData); // Store agent data for later use
 
       // Step 2: Create Token (if the user has selected the checkbox)
       if (createToken) {
@@ -289,43 +366,55 @@ export const DeployDialog = () => {
             agentId: agentData.id, // Assuming the agent API returns an ID
             walletAddress: primaryWallet.address,
           }),
-        })
+        });
 
-        const tokenData = await tokenResponse.json()
-        console.log("Token created:", tokenData)
-        setTokenData(tokenData) // Store token data for later use
+        const tokenData = await tokenResponse.json();
+        console.log("Token created:", tokenData);
+        setTokenData(tokenData); // Store token data for later use
       } else {
         setTokenData(null);
       }
 
       // Open the confirmation dialog after successful deployment
-      setConfirmationOpen(true)
+      setConfirmationOpen(true);
     } catch (error) {
-      console.error("Deployment failed", error)
+      console.error("Deployment failed", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (!user || !primaryWallet) {
     return (
-      <Button onClick={() => setShowAuthFlow(true)} className="bg-blue-500 hover:bg-blue-600 text-white">
+      <Button
+        onClick={() => setShowAuthFlow(true)}
+        className="bg-blue-500 hover:bg-blue-600 text-white"
+      >
         Sign In to Deploy
       </Button>
-    )
+    );
   }
 
   return (
-    <Dialog open={confirmationOpen} onOpenChange={(open) => setConfirmationOpen(open)}>
+    <Dialog
+      open={confirmationOpen}
+      onOpenChange={(open) => setConfirmationOpen(open)}
+    >
       <DialogTrigger asChild>
-        <Button variant="default" className="bg-blue-500 hover:bg-blue-600 text-white" effect={"shineHover"}>
+        <Button
+          variant="default"
+          className="bg-blue-500 hover:bg-blue-600 text-white"
+          effect={"shineHover"}
+        >
           <Rocket className="h-4 w-4 mr-2" />
           Deploy Agent
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>{step === 1 ? "Agent Details" : "Token Details"}</DialogTitle>
+          <DialogTitle>
+            {step === 1 ? "Agent Details" : "Token Details"}
+          </DialogTitle>
           <DialogDescription>
             {step === 1
               ? "Provide information about your agent to deploy it."
@@ -337,7 +426,10 @@ export const DeployDialog = () => {
             <div className="grid grid-cols-[120px_1fr] items-start gap-4">
               <div className="flex flex-col items-center gap-2">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={previewUrl ?? undefined} alt="Agent Preview" />
+                  <AvatarImage
+                    src={previewUrl ?? undefined}
+                    alt="Agent Preview"
+                  />
                 </Avatar>
                 <Label htmlFor="image-upload" className="cursor-pointer">
                   <div className="flex items-center gap-2 rounded-md bg-secondary px-3 py-1 text-xs hover:bg-secondary/80">
@@ -358,7 +450,9 @@ export const DeployDialog = () => {
                 <Input
                   id="name"
                   value={agentDetails.name}
-                  onChange={(e) => setAgentDetails({ ...agentDetails, name: e.target.value })}
+                  onChange={(e) =>
+                    setAgentDetails({ ...agentDetails, name: e.target.value })
+                  }
                   placeholder="Enter agent name"
                 />
               </div>
@@ -368,9 +462,14 @@ export const DeployDialog = () => {
               <Textarea
                 id="description"
                 value={agentDetails.description}
-                onChange={(e) => setAgentDetails({ ...agentDetails, description: e.target.value })}
+                onChange={(e) =>
+                  setAgentDetails({
+                    ...agentDetails,
+                    description: e.target.value,
+                  })
+                }
                 placeholder={
-                  "- What does your agent do?\n- What are its capabilities?\n- How can users interact with it? \n Use a \" - \" for each point."
+                  '- What does your agent do?\n- What are its capabilities?\n- How can users interact with it? \n Use a " - " for each point.'
                 }
                 className="h-24"
               />
@@ -381,7 +480,9 @@ export const DeployDialog = () => {
               <Textarea
                 id="lore"
                 value={agentDetails.lore}
-                onChange={(e) => setAgentDetails({ ...agentDetails, lore: e.target.value })}
+                onChange={(e) =>
+                  setAgentDetails({ ...agentDetails, lore: e.target.value })
+                }
                 placeholder={
                   "- What is his backstory?\n- What are his powers?\n- What is his purpose?"
                 }
@@ -398,7 +499,9 @@ export const DeployDialog = () => {
                 onChange={(e) => setCreateToken(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300"
               />
-              <Label htmlFor="createToken">Create a token with this agent?</Label>
+              <Label htmlFor="createToken">
+                Create a token with this agent?
+              </Label>
             </div>
           </div>
         ) : (
@@ -410,10 +513,14 @@ export const DeployDialog = () => {
                   id="tokenName"
                   maxLength={25}
                   value={tokenDetails.name}
-                  onChange={(e) => setTokenDetails({ ...tokenDetails, name: e.target.value })}
+                  onChange={(e) =>
+                    setTokenDetails({ ...tokenDetails, name: e.target.value })
+                  }
                   placeholder="Enter token name"
                 />
-                <div className="text-right text-sm text-gray-500">{tokenDetails.name.length}/25</div>
+                <div className="text-right text-sm text-gray-500">
+                  {tokenDetails.name.length}/25
+                </div>
               </div>
 
               <div className="grid gap-2">
@@ -422,10 +529,14 @@ export const DeployDialog = () => {
                   id="symbol"
                   maxLength={10}
                   value={tokenDetails.symbol}
-                  onChange={(e) => setTokenDetails({ ...tokenDetails, symbol: e.target.value })}
+                  onChange={(e) =>
+                    setTokenDetails({ ...tokenDetails, symbol: e.target.value })
+                  }
                   placeholder="Enter token symbol"
                 />
-                <div className="text-right text-sm text-gray-500">{tokenDetails.symbol.length}/10</div>
+                <div className="text-right text-sm text-gray-500">
+                  {tokenDetails.symbol.length}/10
+                </div>
               </div>
 
               <div className="grid gap-2">
@@ -433,7 +544,12 @@ export const DeployDialog = () => {
                 <div className="flex items-center gap-4">
                   <Slider
                     value={[tokenDetails.initialBuyAmount]}
-                    onValueChange={(value) => setTokenDetails({ ...tokenDetails, initialBuyAmount: value[0] })}
+                    onValueChange={(value) =>
+                      setTokenDetails({
+                        ...tokenDetails,
+                        initialBuyAmount: value[0],
+                      })
+                    }
                     min={0.1}
                     max={10}
                     step={0.1}
@@ -441,7 +557,12 @@ export const DeployDialog = () => {
                   <Input
                     type="number"
                     value={tokenDetails.initialBuyAmount}
-                    onChange={(e) => setTokenDetails({ ...tokenDetails, initialBuyAmount: parseFloat(e.target.value) })}
+                    onChange={(e) =>
+                      setTokenDetails({
+                        ...tokenDetails,
+                        initialBuyAmount: parseFloat(e.target.value),
+                      })
+                    }
                     min="0.1"
                     max="10"
                     step="0.1"
@@ -460,7 +581,12 @@ export const DeployDialog = () => {
                   <Input
                     id="twitter"
                     value={tokenDetails.twitter}
-                    onChange={(e) => setTokenDetails({ ...tokenDetails, twitter: e.target.value })}
+                    onChange={(e) =>
+                      setTokenDetails({
+                        ...tokenDetails,
+                        twitter: e.target.value,
+                      })
+                    }
                     placeholder="Enter X link (Optional)"
                     className="pl-10"
                   />
@@ -474,7 +600,12 @@ export const DeployDialog = () => {
                   <Input
                     id="telegram"
                     value={tokenDetails.telegram}
-                    onChange={(e) => setTokenDetails({ ...tokenDetails, website: e.target.value })}
+                    onChange={(e) =>
+                      setTokenDetails({
+                        ...tokenDetails,
+                        website: e.target.value,
+                      })
+                    }
                     placeholder="Enter website (Optional)"
                     className="pl-10"
                   />
@@ -488,7 +619,12 @@ export const DeployDialog = () => {
                   <Input
                     id="website"
                     value={tokenDetails.website}
-                    onChange={(e) => setTokenDetails({ ...tokenDetails, website: e.target.value })}
+                    onChange={(e) =>
+                      setTokenDetails({
+                        ...tokenDetails,
+                        website: e.target.value,
+                      })
+                    }
                     placeholder="Enter website (Optional)"
                     className="pl-10"
                   />
@@ -499,7 +635,12 @@ export const DeployDialog = () => {
         )}
         <DialogFooter>
           {step === 2 && (
-            <Button type="button" variant="outline" onClick={() => setStep(1)} className="mr-auto">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setStep(1)}
+              className="mr-auto"
+            >
               Back
             </Button>
           )}
@@ -510,14 +651,16 @@ export const DeployDialog = () => {
             className="bg-blue-500 hover:bg-blue-600 text-white"
             disabled={loading}
           >
-            {loading ? "Deploying..." : (
-              step === 1 ? "Next" : (
-                <>
-                  <Rocket className="h-4 w-4 mr-2" />
-                  {createToken ? "Deploy Agent 0.5 SOL" : "Deploy Agent 0.2 SOL"}
-                  {!createToken && <SolanaIcon className="h-4 w-4 mr-2" />}
-                </>
-              )
+            {loading ? (
+              "Deploying..."
+            ) : step === 1 ? (
+              "Next"
+            ) : (
+              <>
+                <Rocket className="h-4 w-4 mr-2" />
+                {createToken ? "Deploy Agent 0.5 SOL" : "Deploy Agent 0.2 SOL"}
+                {!createToken && <SolanaIcon className="h-4 w-4 mr-2" />}
+              </>
             )}
           </Button>
         </DialogFooter>
@@ -525,7 +668,10 @@ export const DeployDialog = () => {
 
       {/* Confirmation Dialog */}
       {confirmationOpen && (
-        <Dialog open={confirmationOpen} onOpenChange={(open) => setConfirmationOpen(open)}>
+        <Dialog
+          open={confirmationOpen}
+          onOpenChange={(open) => setConfirmationOpen(open)}
+        >
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Deployment Successful!</DialogTitle>
@@ -537,7 +683,11 @@ export const DeployDialog = () => {
               numberOfPieces={200}
             />
             <div className="space-y-4 text-center">
-              <img src={agentData?.image || "/default-agent-image.png"} alt="Agent" className="w-32 h-32 mx-auto rounded-full" />
+              <img
+                src={agentData?.image || "/default-agent-image.png"}
+                alt="Agent"
+                className="w-32 h-32 mx-auto rounded-full"
+              />
               <p className="text-xl font-bold">{agentData?.name}</p>
               {tokenData && (
                 <div>
@@ -547,7 +697,10 @@ export const DeployDialog = () => {
               )}
             </div>
             <DialogFooter>
-              <Button variant="default" onClick={() => setConfirmationOpen(false)}>
+              <Button
+                variant="default"
+                onClick={() => setConfirmationOpen(false)}
+              >
                 Close
               </Button>
             </DialogFooter>
@@ -555,8 +708,18 @@ export const DeployDialog = () => {
         </Dialog>
       )}
     </Dialog>
-  )
-}
+  );
+};
+
+type KeyValue = {
+  key: string;
+  value: string | number | boolean;
+};
+
+export type BlockNode = {
+  id: string | number;
+  keyValueList: KeyValue[];
+};
 
 // Flow.tsx component
 function Flow() {
@@ -574,7 +737,7 @@ function Flow() {
     (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       const type = event.dataTransfer.getData("application/reactflow");
-      
+
       if (!type) return;
 
       const position = reactFlowInstance.screenToFlowPosition({
@@ -583,9 +746,9 @@ function Flow() {
       });
 
       // Handle social media platform restrictions
-      const isSocialMedia = ['tool-21', 'tool-22', 'tool-23'].includes(type);
+      const isSocialMedia = ["tool-21", "tool-22", "tool-23"].includes(type);
       if (isSocialMedia) {
-        alert('Social media integrations coming soon!');
+        alert("Social media integrations coming soon!");
         return;
       }
 
@@ -611,7 +774,11 @@ function Flow() {
         toggleVisibility={toggleToolboxVisibility}
         toolboxCategories={toolboxCategories}
       />
-      <div className="react-flow flex-1 h-[200vh] relative" onDrop={onDrop} onDragOver={onDragOver}>
+      <div
+        className="react-flow flex-1 h-[200vh] relative"
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -641,5 +808,5 @@ export default function FlowWithProvider() {
     <ReactFlowProvider>
       <Flow />
     </ReactFlowProvider>
-  )
+  );
 }
