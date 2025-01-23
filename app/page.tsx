@@ -6,7 +6,6 @@ import Image from "next/image";
 import { Bot, Mic, Blocks } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { WalletDialog } from "@/components/wallet-dialog";
-import { useState } from "react";
 import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { motion } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
@@ -15,7 +14,6 @@ import PumpFunIcon from "@/components/pumfun-icon";
 
 export default function LandingPage() {
   const router = useRouter();
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   return (
     <motion.div 
@@ -59,7 +57,7 @@ export default function LandingPage() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                Instantly Launch & Profit from Your Own Solana AI Agents
+                Zapier meets AI Agents on Solana
               </motion.h1>
               <p className="text-gray-400 text-lg md:text-xl mb-8 max-w-2xl mx-auto md:mx-0">
                 <span className="font-semibold text-[#2683C0]">Zero Coding, Full Control</span> – 
@@ -74,7 +72,7 @@ export default function LandingPage() {
                   Start Building Free Now →
                 </Button>
                 <div className="text-center mt-4 sm:mt-0">
-                  <p className="text-sm text-gray-400">Your first agent is 60 seconds away</p>
+                  <p className="text-sm text-gray-400">Deploy your first agent in 60 seconds</p>
                 </div>
               </div>
             </div>
@@ -156,7 +154,7 @@ export default function LandingPage() {
       {/* Demo Section */}
       <section className="py-12 md:py-20 bg-gray-900">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">From Idea to Income in 60 Seconds</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">From Idea to Automation in 60 Seconds</h2>
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h3 className="text-xl font-bold">Create & Monetize AI Agents with Voice Commands</h3>
