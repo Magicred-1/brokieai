@@ -1,47 +1,58 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+"use client";
 
-import { useEffect, useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ArrowLeft, Copy, Mic } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import VoiceWave from "@/components/voice-wave"
-import debounce from "lodash/debounce"
-import { toast } from "sonner"
-import { AgentSelector } from "./chat-agent-selector"
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useEffect, useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ArrowLeft, Copy, Mic } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import VoiceWave from "@/components/voice-wave";
+import debounce from "lodash/debounce";
+import { toast } from "sonner";
+import { AgentSelector } from "./chat-agent-selector";
+import { getAuthToken, useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Message {
-  role: string
-  content: string
-  timestamp: string
+  role: string;
+  content: string;
+  timestamp: string;
 }
 
 interface ChatDrawerProps {
-  isOpen: boolean
-  onToggle: () => void
-  AgentName: string
+  isOpen: boolean;
+  onToggle: () => void;
+  AgentName: string;
 }
 
 interface Agent {
-  id: string
-  name: string
-  tokenAddress?: string
+  id: string;
+  name: string;
+  tokenAddress?: string;
 }
 
 export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
   //const [isFullScreen, setIsFullScreen] = useState(false)
-  const [isMicActive, setIsMicActive] = useState(false)
-  const [, setVolume] = useState(0)
-  const [isLoading] = useState(false)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>()
-  const [agents, setAgents] = useState<Agent[]>([])
-  const { user, primaryWallet } = useDynamicContext()
-  const userAddress = primaryWallet?.address ?? ""
-  const chatWindowRef = useRef<HTMLDivElement>(null)
+  const [isMicActive, setIsMicActive] = useState(false);
+  const [, setVolume] = useState(0);
+  const [isLoading] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>();
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const { user, primaryWallet } = useDynamicContext();
+  const userAddress = primaryWallet?.address ?? "";
+  const chatWindowRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -54,9 +65,9 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
       content: "Hi there! How can I assist you today?",
       timestamp: "10:16 AM",
     },
-  ])
+  ]);
 
-  const [textInput, setTextInput] = useState("")
+  const [textInput, setTextInput] = useState("");
 
   // useEffect(() => {
   //   if (!isOpen) {
@@ -65,55 +76,61 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
   // }, [isOpen])
 
   useEffect(() => {
-    if (!userAddress) return
-
-    fetch("/api/eliza/list/" + userAddress)
+    if (!userAddress) return;
+    const token = getAuthToken();
+    fetch("/api/eliza/list/" + userAddress, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data.data.length > 0) {
-          setSelectedAgent(data.data[0])
-          setAgents(data.data)
+          setSelectedAgent(data.data[0]);
+          setAgents(data.data);
         }
       })
-      .catch((error) => console.error("Error fetching agents:", error))
-  }, [userAddress])
+      .catch((error) => console.error("Error fetching agents:", error));
+  }, [userAddress, isOpen]);
 
   const handleAgentChange = (agent: Agent) => {
-    setSelectedAgent(agent)
-  }
+    setSelectedAgent(agent);
+  };
 
   const onCopy = () => {
     if (!selectedAgent) return;
-    navigator.clipboard.writeText(selectedAgent.tokenAddress ?? "")
-    toast.success("Address copied to clipboard.")
-  }
+    navigator.clipboard.writeText(selectedAgent.tokenAddress ?? "");
+    toast.success("Address copied to clipboard.");
+  };
 
   const initializeSpeechRecognition = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      toast.error("Speech recognition not supported on this browser.")
-      return null
+      toast.error("Speech recognition not supported on this browser.");
+      return null;
     }
 
-    const recognition = new SpeechRecognition()
-    recognition.continuous = true
-    recognition.interimResults = true
-    recognition.lang = "en-US"
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
 
-    recognition.onstart = () => setIsMicActive(true)
+    recognition.onstart = () => setIsMicActive(true);
 
     recognition.onresult = debounce((event: any) => {
-      let finalTranscript = ""
-      let interimTranscript = ""
+      let finalTranscript = "";
+      let interimTranscript = "";
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript
+        const transcript = event.results[i][0].transcript;
 
         if (event.results[i].isFinal) {
-          finalTranscript += transcript
+          finalTranscript += transcript;
         } else {
-          interimTranscript += transcript
+          interimTranscript += transcript;
         }
       }
 
@@ -125,120 +142,126 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             content: finalTranscript.trim(),
             timestamp: new Date().toLocaleTimeString(),
           },
-        ])
+        ]);
       }
 
       if (interimTranscript) {
         setMessages((prev) => {
-          const updatedMessages = [...prev]
-          const lastMessage = updatedMessages[updatedMessages.length - 1]
+          const updatedMessages = [...prev];
+          const lastMessage = updatedMessages[updatedMessages.length - 1];
 
           if (lastMessage?.role === "user") {
             updatedMessages[updatedMessages.length - 1] = {
               ...lastMessage,
               content: interimTranscript.trim(),
-            }
+            };
           }
 
-          return updatedMessages
-        })
+          return updatedMessages;
+        });
       }
-    }, 300)
+    }, 300);
 
     recognition.onerror = (event: any) => {
       if (event.error === "network") {
-        toast.error("Network error: Check your internet connection.")
+        toast.error("Network error: Check your internet connection.");
       } else {
-        toast.error(`Speech recognition error: ${event.error}`)
+        toast.error(`Speech recognition error: ${event.error}`);
       }
-    }
+    };
 
     recognition.onend = () => {
       if (isMicActive) {
         try {
-          recognition.start()
+          recognition.start();
         } catch (error) {
-          console.error("Speech recognition failed to restart:", error)
+          console.error("Speech recognition failed to restart:", error);
         }
       }
-    }
+    };
 
-    return recognition
-  }
+    return recognition;
+  };
 
   const startSpeechRecognition = async () => {
     try {
-      const recognition = initializeSpeechRecognition()
-      if (!recognition) return
+      const recognition = initializeSpeechRecognition();
+      if (!recognition) return;
 
-      const audioContext = new ((window as any).AudioContext || (window as any).webkitAudioContext)()
-      const analyser = audioContext.createAnalyser()
+      const audioContext = new ((window as any).AudioContext ||
+        (window as any).webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
 
-      let microphone
+      let microphone;
       try {
-        microphone = await navigator.mediaDevices.getUserMedia({ audio: true })
+        microphone = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch (error) {
-        console.error("Error accessing microphone:", error)
-        toast.error("Failed to access microphone. Please check your permissions.")
-        return
+        console.error("Error accessing microphone:", error);
+        toast.error(
+          "Failed to access microphone. Please check your permissions."
+        );
+        return;
       }
 
-      const microphoneStream = audioContext.createMediaStreamSource(microphone)
-      microphoneStream.connect(analyser)
+      const microphoneStream = audioContext.createMediaStreamSource(microphone);
+      microphoneStream.connect(analyser);
 
-      analyser.fftSize = 256
-      const bufferLength = analyser.frequencyBinCount
-      const dataArray = new Uint8Array(bufferLength)
+      analyser.fftSize = 256;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
 
       const updateVolume = () => {
-        analyser.getByteFrequencyData(dataArray)
-        const averageVolume = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length
-        const normalizedVolume = Math.min(1, averageVolume / 256)
-        setVolume(normalizedVolume)
-      }
+        analyser.getByteFrequencyData(dataArray);
+        const averageVolume =
+          dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+        const normalizedVolume = Math.min(1, averageVolume / 256);
+        setVolume(normalizedVolume);
+      };
 
-      const volumeInterval = setInterval(updateVolume, 100)
+      const volumeInterval = setInterval(updateVolume, 100);
 
-      recognitionRef.current = recognition
-      recognition.start()
+      recognitionRef.current = recognition;
+      recognition.start();
 
       recognition.onend = () => {
-        clearInterval(volumeInterval)
-        microphone.getTracks().forEach((track: MediaStreamTrack) => track.stop())
-      }
+        clearInterval(volumeInterval);
+        microphone
+          .getTracks()
+          .forEach((track: MediaStreamTrack) => track.stop());
+      };
     } catch (error) {
-      console.error("Error starting speech recognition:", error)
-      toast.error("Failed to start speech recognition.")
+      console.error("Error starting speech recognition:", error);
+      toast.error("Failed to start speech recognition.");
     }
-  }
+  };
 
   const stopSpeechRecognition = () => {
     if (recognitionRef.current) {
-      recognitionRef.current.stop()
-      recognitionRef.current = null
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
     }
-    setIsMicActive(false)
-    setVolume(0)
-  }
+    setIsMicActive(false);
+    setVolume(0);
+  };
 
   useEffect(() => {
     if (chatWindowRef.current) {
-      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }
-  }, [messages])
+  }, [messages]);
 
-  useEffect(() => () => stopSpeechRecognition(), [])
+  useEffect(() => () => stopSpeechRecognition(), []);
 
   const toggleMic = () => {
     if (isMicActive) {
-      stopSpeechRecognition()
+      stopSpeechRecognition();
     } else {
-      startSpeechRecognition()
+      startSpeechRecognition();
     }
-  }
+  };
 
   const handleTextSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     if (textInput.trim()) {
       setMessages((prev) => [
         ...prev,
@@ -247,10 +270,10 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
           content: textInput.trim(),
           timestamp: new Date().toLocaleTimeString(),
         },
-      ])
-      setTextInput("")
+      ]);
+      setTextInput("");
     }
-  }
+  };
 
   const renderContent = () => {
     if (!userAddress) {
@@ -260,15 +283,17 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             Please connect your wallet to start chatting with your agents.
           </p>
         </div>
-      )
+      );
     }
 
     if (agents.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full p-4">
-          <p className="text-center text-gray-500 text-lg">No agents found. Create your first agent to get started!</p>
+          <p className="text-center text-gray-500 text-lg">
+            No agents found. Create your first agent to get started!
+          </p>
         </div>
-      )
+      );
     }
 
     return (
@@ -280,20 +305,36 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`flex ${message.role === "user" ? "justify-start" : "justify-end"} space-x-4 p-4`}
+            className={`flex ${
+              message.role === "user" ? "justify-start" : "justify-end"
+            } space-x-4 p-4`}
           >
-            <div className={`flex ${message.role === "user" ? "flex-row" : "flex-row-reverse"} items-start space-x-4`}>
+            <div
+              className={`flex ${
+                message.role === "user" ? "flex-row" : "flex-row-reverse"
+              } items-start space-x-4`}
+            >
               <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
-              <div className={`flex flex-col ${message.role === "user" ? "items-start" : "items-end"}`}>
+              <div
+                className={`flex flex-col ${
+                  message.role === "user" ? "items-start" : "items-end"
+                }`}
+              >
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium">
-                    {message.role === "user" ? user?.username : selectedAgent?.name}
+                    {message.role === "user"
+                      ? user?.username
+                      : selectedAgent?.name}
                   </span>
-                  <span className="text-xs text-muted-foreground">{message.timestamp}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {message.timestamp}
+                  </span>
                 </div>
                 <p
                   className={`text-sm leading-relaxed mt-1 p-2 rounded-lg ${
-                    message.role === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"
+                    message.role === "user"
+                      ? "bg-blue-100 text-blue-900"
+                      : "bg-gray-100 text-gray-900"
                   }`}
                 >
                   {message.content}
@@ -303,8 +344,8 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
           </div>
         ))}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onToggle}>
@@ -331,10 +372,13 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
         <div className="flex flex-col h-full">
           <SheetHeader className="px-6 py-4">
             <div className="flex items-center justify-between">
-              <SheetTitle className="text-2xl">Chat with {selectedAgent?.name}
-                {
-                  selectedAgent?.tokenAddress  ? <Button variant={"secondary"} onClick={onCopy}><Copy /> Copy Address</Button> : null
-                }
+              <SheetTitle className="text-2xl">
+                Chat with {selectedAgent?.name}
+                {selectedAgent?.tokenAddress ? (
+                  <Button variant={"secondary"} onClick={onCopy}>
+                    <Copy /> Copy Address
+                  </Button>
+                ) : null}
               </SheetTitle>
             </div>
           </SheetHeader>
@@ -343,7 +387,14 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             <div className="px-6 py-4">
               <AgentSelector
                 agents={agents}
-                selectedAgent={selectedAgent ?? { id: "", name: "Create your first agent to get started", tokenAddress: "" } as Agent}
+                selectedAgent={
+                  selectedAgent ??
+                  ({
+                    id: "",
+                    name: "Create your first agent to get started",
+                    tokenAddress: "",
+                  } as Agent)
+                }
                 onAgentChange={handleAgentChange}
               />
             </div>
@@ -424,7 +475,11 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                         </motion.div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{isMicActive ? "Click to stop using microphone" : "Click to start use microphone"}</p>
+                        <p>
+                          {isMicActive
+                            ? "Click to stop using microphone"
+                            : "Click to start use microphone"}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -435,6 +490,5 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }
-

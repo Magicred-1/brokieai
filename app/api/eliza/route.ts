@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JwksClient } from "jwks-rsa";
+import { middleware } from "@/utils/auth/middleware";
 
 function generate_characters(
   name: string,
@@ -58,58 +59,37 @@ function generateSolanaWallet() {
   return { publicKey, privateKey };
 }
 
-const DYNAMIC_ID = process.env.DYNAMIC_PROJECT_ID;
-
-const jwksUrl = `https://app.dynamic.xyz/api/v0/sdk/${DYNAMIC_ID}/.well-known/jwks`;
-
 export const POST = async (req: Request) => {
   try {
-    // Expecting the agent's name in the request body
-    const encodedJwt = req.headers
-      .get("Authorization")
-      ?.split(" ")[1]
-      .replace(/"/g, "");
+    // middle function logic (JWT verification)
+    // not the best practice to have this logic in the route but for simplicity and fast prototyping
+    const middle = await middleware(req);
 
-    const client = new JwksClient({
-      jwksUri: jwksUrl,
-      rateLimit: true,
-      cache: true,
-      cacheMaxEntries: 5, // Maximum number of cached keys
-      cacheMaxAge: 600000, // Cache duration in milliseconds (10 minutes in this case))}
-    });
-
-    const signingKey = await client.getSigningKey();
-    const pubKey = signingKey.getPublicKey();
-
-    if (!encodedJwt) {
+    if (middle === "401") {
       return NextResponse.json(
-        { error: "Authorization token is missing" },
+        { error: "Unauthorized: Invalid token." },
         { status: 401 }
       );
     }
 
-    try {
-      jwt.verify(encodedJwt, pubKey, {
-        ignoreExpiration: false,
-      }) as JwtPayload;
-    } catch (error) {
-      return NextResponse.json({ error: error }, { status: 401 });
+    if (middle === "403") {
+      return NextResponse.json(
+        { error: "Forbidden: Requires additional authentication." },
+        { status: 403 }
+      );
     }
 
-    const decodedToken = jwt.decode(encodedJwt) as JwtPayload;
-    // TODO : create type for decodedToken
-    const userAddress = decodedToken.verified_credentials.address; // extract the user's wallet address from the JWT
+    const userAddress = middle;
 
-    if (decodedToken.scopes.includes("requiresAdditionalAuth")) {
-      // Either reject or handle the scopes appropriately.
-      // `requiresAdditionalAuth` is the scope used to indicate that JWT requires additional verification such as MFA.
-      return NextResponse.json({ error: "Non Authorized" }, { status: 401 });
+    if (!userAddress) {
+      return NextResponse.json(
+        { error: "Wallet Address is required in the request body." },
+        { status: 400 }
+      );
     }
 
     const requestData = await req.json();
     const { name, description } = requestData;
-
-    console.log("Request Data:", requestData); // Log incoming data to debug
 
     // Validate name and walletAddress input
     if (!name) {
@@ -143,7 +123,7 @@ export const POST = async (req: Request) => {
       privateKey
     );
 
-    console.log("Generated Character:", character); // Log the character data to ensure it includes all fields
+    // console.log("Generated Character:", character); // Log the character data to ensure it includes all fields
 
     const supabase = await createClient();
 
