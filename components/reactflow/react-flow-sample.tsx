@@ -341,7 +341,7 @@ export const DeployDialog = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // add jwt token
         },
         body: JSON.stringify({
           name: agentDetails.name,
