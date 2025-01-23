@@ -7,7 +7,7 @@ function generate_characters(name: string, description: string, publicKey: strin
   return {
     id: uuidv4(),
     name: name,
-    plugins: ['@elizaos/plugin-solana'],
+    plugins: ['@elizaos/plugin-solana', '@elizaos/plugin-web-search'],
     clients: ['direct'],
     modelProvider: 'openai',
     settings: {
