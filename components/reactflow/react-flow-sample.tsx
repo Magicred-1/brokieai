@@ -51,7 +51,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
-import { Avatar, AvatarImage } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Slider } from "@/components/ui/slider";
 import Confetti from "react-confetti";
 import {
@@ -394,30 +394,48 @@ export const DeployDialog = () => {
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[550px]">
-        <DialogHeader>
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center gap-2">
-              {[1, 2].map((num) => (
-                <div
-                  key={num}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    step === num ? "bg-blue-500 text-white" : "bg-gray-200"
-                  }`}
-                >
-                  {num}
-                </div>
-              ))}
+      <DialogHeader>
+  <div className="mb-6">
+    <div className="flex items-center justify-center">
+      {/* Progress line */}
+      <div className="absolute w-64 h-1 bg-gray-200 rounded-full"> {/* Increased width */}
+        <div 
+          className={`h-full bg-blue-500 rounded-full transition-all duration-300 ${
+            step === 2 ? "w-full" : "w-1/2"
+          }`}
+        />
+      </div>
+      
+      {/* Step indicators */}
+      <div className="flex justify-between relative z-10 w-64"> {/* Match progress bar width */}
+        {[1, 2].map((num) => (
+          <div key={num} className="flex flex-col items-center">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300
+                ${
+                  step === num 
+                    ? "bg-blue-500 text-white ring-4 ring-blue-200" 
+                    : "bg-gray-100 text-gray-400"
+                }`}
+            >
+              <span className="font-semibold">{num}</span>
             </div>
           </div>
-          <DialogTitle>
-            {step === 1 ? "Agent Details" : "Token Details"}
-          </DialogTitle>
-          <DialogDescription>
-            {step === 1
-              ? "Provide information about your agent to deploy it."
-              : "Create a token for your agent (optional)"}
-          </DialogDescription>
-        </DialogHeader>
+        ))}
+      </div>
+    </div>
+  </div>
+  
+  <DialogTitle className="text-xl font-bold text-center">
+    {step === 1 ? "Agent Details" : "Token Details"}
+  </DialogTitle>
+  
+  <DialogDescription className="mt-2 text-gray-600 text-center">
+    {step === 1
+      ? "Provide information about your agent to deploy it."
+      : "Create a token for your agent (optional)"}
+  </DialogDescription>
+      </DialogHeader>
 
         {step === 1 ? (
           <div className="grid gap-6 py-4">
@@ -428,6 +446,7 @@ export const DeployDialog = () => {
                     src={previewUrl ?? undefined}
                     alt="Agent Preview"
                   />
+                  <AvatarFallback>CZ</AvatarFallback>
                 </Avatar>
                 <Label htmlFor="image-upload" className="cursor-pointer">
                   <div className="flex items-center gap-2 rounded-md bg-secondary px-3 py-1 text-xs hover:bg-secondary/80">
