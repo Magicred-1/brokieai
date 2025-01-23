@@ -1,8 +1,7 @@
 import { Keypair } from "@solana/web3.js";
 import { NextResponse } from "next/server";
 import bs58 from "bs58";
-import fs from "fs/promises";
-import FormData from "form-data";
+import { z } from "zod";
 import { createClient } from "@/utils/supabase";
 
 interface TokenMetadata {
@@ -18,149 +17,168 @@ interface TxResult {
   error?: string;
 }
 
+const TokenSchema = z.object({
+  name: z.string().min(2).max(25),
+  symbol: z.string().min(2).max(10),
+  description: z.string().max(500),
+  twitter: z.string().url().optional(),
+  telegram: z.string().url().optional(),
+  website: z.string().url().optional(),
+  imageData: z.string(),
+  walletAddress: z.string(),
+  agentID: z.string().uuid()
+});
+
 async function sendCreateTx(
   formData: FormData,
   apiKey: string
 ): Promise<TxResult> {
-  // Generate a random keypair for the token
-  const mintKeypair = Keypair.generate();
+  try {
+    const mintKeypair = Keypair.generate();
 
-  // Create IPFS metadata storage
-  const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
-    method: "POST",
-    body: formData as any,
-  });
-
-  const metadataResponseJSON = await metadataResponse.json();
-
-  // Send the create transaction
-  const response = await fetch(
-    `https://pumpportal.fun/api/trade?api-key=${apiKey}`,
-    {
+    // Store metadata on IPFS
+    const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: "create",
-        tokenMetadata: {
-          name: metadataResponseJSON.metadata.name,
-          symbol: metadataResponseJSON.metadata.symbol,
-          uri: metadataResponseJSON.metadataUri,
-        } as TokenMetadata,
-        mint: bs58.encode(mintKeypair.secretKey),
-        denominatedInSol: "true",
-        amount: 1, // Dev buy of 1 SOL
-        slippage: 10,
-        priorityFee: 0.0005,
-        pool: "pump",
-      }),
-    }
-  );
+      body: formData as any,
+    });
 
-  if (response.status === 200) {
-    const data = await response.json();
-    return {
-      success: true,
-      transactionLink: `https://solscan.io/tx/${data.signature}`,
-      tokenAddress: mintKeypair.publicKey.toBase58(),
-    };
-  } else {
+    if (!metadataResponse.ok) {
+      const errorText = await metadataResponse.text();
+      throw new Error(`IPFS upload failed: ${errorText}`);
+    }
+
+    const metadata = await metadataResponse.json();
+
+    // Create token transaction
+    const response = await fetch(
+      `https://pumpportal.fun/api/trade?api-key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "create",
+          tokenMetadata: {
+            name: metadata.metadata.name,
+            symbol: metadata.metadata.symbol,
+            uri: metadata.metadataUri,
+          } as TokenMetadata,
+          mint: bs58.encode(mintKeypair.secretKey),
+          denominatedInSol: "true",
+          amount: 1,
+          slippage: 10,
+          priorityFee: 0.0005,
+          pool: "pump",
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        success: true,
+        transactionLink: `https://solscan.io/tx/${data.signature}`,
+        tokenAddress: mintKeypair.publicKey.toBase58(),
+      };
+    }
+
     const errorText = await response.text();
     return { success: false, error: errorText };
+  } catch (error) {
+    return { 
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown transaction error"
+    };
   }
 }
 
 export const POST = async (req: Request) => {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
   try {
-    const apiKey = process.env.PUMP_FUN_API_KEY ?? "";
+    const apiKey = process.env.PUMP_FUN_API_KEY;
+    if (!apiKey) throw new Error("Missing Pump.fun API configuration");
 
-    const {
-      filePath,
-      name,
-      symbol,
-      description,
-      twitter,
-      telegram,
-      website,
-      showName,
-      walletAddress,
-      agentID,
-    } = await req.json();
-
-    if (
-      !filePath ||
-      !name ||
-      !symbol ||
-      !description ||
-      !twitter ||
-      !telegram ||
-      !website ||
-      !showName ||
-      !walletAddress ||
-      !agentID
-    ) {
+    // Validate input
+    const rawBody = await req.json();
+    const validation = TokenSchema.safeParse(rawBody);
+    
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Missing required fields in the request body." },
-        { status: 400 }
+        { error: validation.error.flatten() },
+        { status: 400, headers }
       );
     }
 
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "Missing API Key in the request body." },
-        { status: 400 }
-      );
-    }
+    const { data } = validation;
 
-    const supabase = await createClient();
-
-    // Prepare form data for IPFS metadata
+    // Process image
+    const imageBuffer = Buffer.from(data.imageData.split(',')[1], 'base64');
+    const imageBlob = new Blob([imageBuffer], { type: 'image/png' });
+    
     const formData = new FormData();
-    const fileBuffer = await fs.readFile(filePath);
-    const fileBlob = new Blob([fileBuffer]);
-    formData.append("file", fileBlob);
-    formData.append("name", name);
-    formData.append("symbol", symbol);
-    formData.append("description", description);
-    formData.append("twitter", twitter);
-    formData.append("telegram", telegram);
-    formData.append("website", website);
-    formData.append("showName", showName);
+    formData.append('file', imageBlob, 'token-image.png');
+    formData.append('name', data.name);
+    formData.append('symbol', data.symbol);
+    formData.append('description', data.description);
+    formData.append('showName', 'true');
 
-    const txResult = await sendCreateTx(formData, apiKey);
+    // Optional fields
+    if (data.twitter) formData.append('twitter', data.twitter);
+    if (data.telegram) formData.append('telegram', data.telegram);
+    if (data.website) formData.append('website', data.website);
 
-    if (txResult.success) {
-      // Insert token address and other details into Supabase
-      const { data, error } = await supabase.from("tokens").insert({
-        name,
-        symbol,
-        description,
-        twitter,
-        telegram,
-        website,
-        agent_id: agentID,
-        token_address: txResult.tokenAddress,
-      });
-
-      console.log(data);
-
-      if (error) {
-        return NextResponse.json(
-          { error: "Failed to save token data to Supabase." },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        message: "Transaction created successfully!",
-        transactionLink: txResult.transactionLink,
-        tokenAddress: txResult.tokenAddress,
-      });
-    } else {
-      return NextResponse.json({ error: txResult.error }, { status: 500 });
+    // Execute transaction with retry logic
+    let txResult: TxResult = { success: false };
+    let retries = 3;
+    
+    while (retries > 0) {
+      txResult = await sendCreateTx(formData, apiKey);
+      if (txResult.success) break;
+      retries--;
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
+
+    if (!txResult!.success) {
+      throw new Error(txResult!.error || 'Token creation failed after retries');
+    }
+
+    // Save to Supabase
+    const supabase = await createClient();
+    const { error } = await supabase.from('tokens').insert({
+      name: data.name,
+      symbol: data.symbol,
+      description: data.description,
+      twitter: data.twitter,
+      telegram: data.telegram,
+      website: data.website,
+      agent_id: data.agentID,
+      token_address: txResult.tokenAddress,
+      transaction_link: txResult.transactionLink,
+      wallet_address: data.walletAddress,
+      explorer_link: `https://pump.fun/coin/${txResult.tokenAddress}`
+    });
+
+    if (error) throw new Error('Failed to save token data');
+
+    return NextResponse.json({
+      success: true,
+      tokenAddress: txResult.tokenAddress,
+      transactionLink: txResult.transactionLink,
+      explorerLink: `https://pump.fun/coin/${txResult.tokenAddress}`
+    }, { headers });
+
   } catch (error) {
-    return NextResponse.json({ error: error }, { status: 500 });
+    console.error('Deployment Error:', error);
+    return NextResponse.json(
+      { 
+        error: error instanceof Error ? error.message : 'Internal server error',
+        success: false
+      },
+      { status: 500, headers }
+    );
   }
 };

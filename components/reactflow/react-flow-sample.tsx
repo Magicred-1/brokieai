@@ -25,6 +25,9 @@ import {
   TwitterIcon,
   Twitter,
   LinkIcon,
+  ArrowUpRight,
+  Wallet,
+  PartyPopper,
 } from "lucide-react";
 import { FaDiscord, FaTelegram } from "react-icons/fa";
 import {
@@ -295,10 +298,10 @@ export const DeployDialog = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [createToken, setCreateToken] = useState<boolean>(false); // State for token creation checkbox
+  const [createToken, setCreateToken] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
-  const [agentData, setAgentData] = useState<any | null>(null); // To store agent data (name, image)
-  const [tokenData, setTokenData] = useState<any | null>(null); // To store token data (address)
+  const [agentData, setAgentData] = useState<any>(null);
+  const [tokenData, setTokenData] = useState<any>(null);
 
   const { user, primaryWallet, setShowAuthFlow } = useDynamicContext();
 
@@ -307,8 +310,7 @@ export const DeployDialog = () => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const imageUrl = URL.createObjectURL(file);
-      // Need to implement IPFS upload here or not based on if we use Pump.fun for the deployment
-      setAgentDetails((prevState) => ({ ...prevState, image: imageUrl }));
+      setAgentDetails((prev) => ({ ...prev, image: imageUrl }));
     } catch (error) {
       console.error("Image upload failed", error);
     } finally {
@@ -321,61 +323,45 @@ export const DeployDialog = () => {
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
+      reader.onloadend = () => setPreviewUrl(reader.result as string);
       reader.readAsDataURL(file);
       uploadToIPFS(file);
     }
   };
 
   const handleDialogSubmit = async () => {
-    if (!agentDetails.name || !primaryWallet?.address) {
-      return;
-    }
+    if (!agentDetails.name || !primaryWallet?.address) return;
 
     setLoading(true);
-
     try {
-      // Step 1: Deploy Agent
+      // Deploy Agent
       const agentResponse = await fetch("/api/eliza", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: agentDetails.name,
           description: agentDetails.description,
           walletAddress: primaryWallet.address,
         }),
       });
-
       const agentData = await agentResponse.json();
-      console.log("Agent deployed:", agentData);
-      setAgentData(agentData); // Store agent data for later use
+      setAgentData(agentData);
 
-      // Step 2: Create Token (if the user has selected the checkbox)
+      // Create Token if selected
       if (createToken) {
-        const tokenResponse = await fetch("/api/token", {
+        const tokenResponse = await fetch("/api/token/deploy", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...tokenDetails,
-            agentId: agentData.id, // Assuming the agent API returns an ID
+            agentId: agentData.id,
             walletAddress: primaryWallet.address,
           }),
         });
-
         const tokenData = await tokenResponse.json();
-        console.log("Token created:", tokenData);
-        setTokenData(tokenData); // Store token data for later use
-      } else {
-        setTokenData(null);
+        setTokenData(tokenData);
       }
 
-      // Open the confirmation dialog after successful deployment
       setConfirmationOpen(true);
     } catch (error) {
       console.error("Deployment failed", error);
@@ -396,22 +382,33 @@ export const DeployDialog = () => {
   }
 
   return (
-    <Dialog
-      open={confirmationOpen}
-      onOpenChange={(open) => setConfirmationOpen(open)}
-    >
+    <Dialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
       <DialogTrigger asChild>
         <Button
           variant="default"
           className="bg-blue-500 hover:bg-blue-600 text-white"
-          effect={"shineHover"}
         >
           <Rocket className="h-4 w-4 mr-2" />
           Deploy Agent
         </Button>
       </DialogTrigger>
+
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
+          <div className="flex justify-center mb-4">
+            <div className="flex items-center gap-2">
+              {[1, 2].map((num) => (
+                <div
+                  key={num}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    step === num ? "bg-blue-500 text-white" : "bg-gray-200"
+                  }`}
+                >
+                  {num}
+                </div>
+              ))}
+            </div>
+          </div>
           <DialogTitle>
             {step === 1 ? "Agent Details" : "Token Details"}
           </DialogTitle>
@@ -421,6 +418,7 @@ export const DeployDialog = () => {
               : "Create a token for your agent (optional)"}
           </DialogDescription>
         </DialogHeader>
+
         {step === 1 ? (
           <div className="grid gap-6 py-4">
             <div className="grid grid-cols-[120px_1fr] items-start gap-4">
@@ -490,7 +488,6 @@ export const DeployDialog = () => {
               />
             </div>
 
-            {/* New Checkbox for Token Creation */}
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -567,9 +564,7 @@ export const DeployDialog = () => {
                     max="10"
                     step="0.1"
                     className="w-20"
-                  >
-                    <SolanaIcon className="h-6 w-6" />
-                  </Input>
+                  />
                   <SolanaIcon className="h-6 w-6" />
                 </div>
               </div>
@@ -594,7 +589,7 @@ export const DeployDialog = () => {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="website">Telegram</Label>
+                <Label htmlFor="telegram">Telegram</Label>
                 <div className="relative">
                   <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
@@ -603,10 +598,10 @@ export const DeployDialog = () => {
                     onChange={(e) =>
                       setTokenDetails({
                         ...tokenDetails,
-                        website: e.target.value,
+                        telegram: e.target.value,
                       })
                     }
-                    placeholder="Enter website (Optional)"
+                    placeholder="Enter Telegram link (Optional)"
                     className="pl-10"
                   />
                 </div>
@@ -646,7 +641,6 @@ export const DeployDialog = () => {
           )}
           <Button
             type="submit"
-            effect={"shineHover"}
             onClick={step === 1 ? () => setStep(2) : handleDialogSubmit}
             className="bg-blue-500 hover:bg-blue-600 text-white"
             disabled={loading}
@@ -659,7 +653,6 @@ export const DeployDialog = () => {
               <>
                 <Rocket className="h-4 w-4 mr-2" />
                 {createToken ? "Deploy Agent 0.5 SOL" : "Deploy Agent 0.2 SOL"}
-                {!createToken && <SolanaIcon className="h-4 w-4 mr-2" />}
               </>
             )}
           </Button>
@@ -668,48 +661,91 @@ export const DeployDialog = () => {
 
       {/* Confirmation Dialog */}
       {confirmationOpen && (
-        <Dialog
-          open={confirmationOpen}
-          onOpenChange={(open) => setConfirmationOpen(open)}
-        >
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Deployment Successful!</DialogTitle>
-            </DialogHeader>
+        <Dialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
+          <DialogContent className="sm:max-w-[425px] relative overflow-hidden">
             <Confetti
               width={window.innerWidth}
               height={window.innerHeight}
               recycle={false}
-              numberOfPieces={200}
+              numberOfPieces={500}
+              gravity={0.2}
+              className="absolute inset-0 z-0"
             />
-            <div className="space-y-4 text-center">
-              <img
-                src={agentData?.image || "/default-agent-image.png"}
-                alt="Agent"
-                className="w-32 h-32 mx-auto rounded-full"
-              />
-              <p className="text-xl font-bold">{agentData?.name}</p>
-              {tokenData && (
-                <div>
-                  <p className="text-md">Token Created:</p>
-                  <p className="text-lg font-semibold">{tokenData?.address}</p>
+            
+            <div className="relative z-10 space-y-6 text-center">
+              <DialogHeader>
+                <DialogTitle className="text-2xl">
+                  🎉 Congrats! You just deployed {agentData?.name}!
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <img
+                  src={agentData?.image || "/default-agent-image.png"}
+                  alt="Agent"
+                  className="w-32 h-32 mx-auto rounded-full border-4 border-yellow-400 shadow-lg"
+                />
+                
+                {tokenData && (
+                  <div className="bg-secondary p-4 rounded-lg space-y-2">
+                    <p className="font-medium">Token Created:</p>
+                    <p className="text-sm font-mono break-words text-green-400">
+                      {tokenData?.address}
+                    </p>
+                    <Button
+                      asChild
+                      variant="link"
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      <a
+                        href={`https://pump.fun/coin/${tokenData?.address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1"
+                      >
+                        View on Pump.fun
+                        <ArrowUpRight className="h-3 w-3 ml-1" />
+                      </a>
+                    </Button>
+                    <div className="mt-2 flex items-center justify-center gap-2">
+                      <SolanaIcon className="h-4 w-4" />
+                      <span>Initial Supply: {tokenDetails.initialBuyAmount} SOL</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-secondary p-4 rounded-lg">
+                  <p className="font-medium">Transaction Details</p>
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <Wallet className="h-4 w-4" />
+                    <span className="text-sm">
+                      Deployed from: {primaryWallet?.address?.slice(0, 6)}...{primaryWallet?.address?.slice(-4)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm">
+                    Total cost: {createToken ? "0.5 SOL" : "0.2 SOL"}
+                  </p>
                 </div>
-              )}
+              </div>
+
+              <DialogFooter className="sm:justify-center">
+                <Button
+                  variant="default"
+                  onClick={() => setConfirmationOpen(false)}
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  <PartyPopper className="mr-2 h-4 w-4" />
+                  Start Using {agentData?.name}
+                </Button>
+              </DialogFooter>
             </div>
-            <DialogFooter>
-              <Button
-                variant="default"
-                onClick={() => setConfirmationOpen(false)}
-              >
-                Close
-              </Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
     </Dialog>
   );
 };
+
 
 type KeyValue = {
   key: string;
