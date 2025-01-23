@@ -331,7 +331,11 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
         <div className="flex flex-col h-full">
           <SheetHeader className="px-6 py-4">
             <div className="flex items-center justify-between">
-              <SheetTitle className="text-2xl">Chat with {selectedAgent?.name} <Button variant={"secondary"} onClick={onCopy}><Copy /> Copy Address</Button></SheetTitle>
+              <SheetTitle className="text-2xl">Chat with {selectedAgent?.name}
+                {
+                  agents.length > 0 ? <Button variant={"secondary"} onClick={onCopy}><Copy /> Copy Address</Button> : null
+                }
+              </SheetTitle>
             </div>
           </SheetHeader>
 
