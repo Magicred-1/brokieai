@@ -8,11 +8,12 @@ type Props = {
   }>;
 };
 
-function extractNameAndId(responseJson: DBAgentList) {
+function extractAgentDetails(responseJson: DBAgentList) {
   const data = responseJson.data || [];
   return data.map((item) => ({
     id: item.id,
     name: item.name,
+    walletAddress: item.tokenAddress,
   }));
 }
 
@@ -32,7 +33,7 @@ export const GET = async (req: Request, { params }: Props) => {
     .select("*")
     .eq("owner", user);
 
-  const agents = supabaseData ? extractNameAndId({ data: supabaseData }) : [];
+  const agents = supabaseData ? extractAgentDetails({ data: supabaseData }) : [];
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

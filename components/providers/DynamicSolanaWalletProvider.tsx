@@ -5,7 +5,7 @@ import {
 } from "@dynamic-labs/sdk-react-core";
 import { SolanaWalletConnectors } from "@dynamic-labs/solana";
 import * as React from "react";
-// import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export const sidebarCss = `
     @media (min-width: 768px) {
@@ -82,7 +82,7 @@ export const sidebarCss = `
 
 
 export default function DynamicSolanaWalletProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-    // const router = useRouter();
+    const router = useRouter();
 
     return (
         <DynamicContextProvider
@@ -91,11 +91,13 @@ export default function DynamicSolanaWalletProvider({ children }: Readonly<{ chi
             walletConnectors: [SolanaWalletConnectors],
             cssOverrides: sidebarCss,
             events: {
-                onLogout: () => {
-                    console.log("Logged out");
+                onLogout: (args) => {
+                    console.log("Logged out", args);
+                    router.push("/");
                 },
-                onAuthSuccess: () => {
-                    console.log("Logged in");
+                onAuthSuccess: (args) => {
+                    console.log("Auth success", args);
+                    router.push("/create");
                 }
             }
         }}

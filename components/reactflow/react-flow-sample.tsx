@@ -830,7 +830,7 @@ function Flow() {
         toolboxCategories={toolboxCategories}
       />
       <div
-        className="react-flow flex-1 h-[200vh] relative"
+        className="react-flow flex-1 h-full relative"
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
