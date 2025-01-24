@@ -22,9 +22,6 @@ export function HowItWorksDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>     
-          <DialogDescription>
-              Connect your wallet first to buy crypto.
-          </DialogDescription>
           <DialogTitle>How the Crypto AI Agent Creator Works</DialogTitle>
           <DialogDescription>
             Understand the key features of our platform

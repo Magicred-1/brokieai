@@ -82,7 +82,7 @@ const initialNodes = [
       tokenSymbol: "AGT",
       supply: "1000000",
       decimals: "6",
-      description: "Initial token deployment for agent economy"
+      // description: "Initial token deployment for agent economy"
     },
     position: { x: 250, y: 150 },
   },
@@ -91,7 +91,7 @@ const initialNodes = [
     type: "raydium",
     data: {
       label: "🌊 Raydium Pool Create",
-      description: "Create a new liquidity pool on Raydium"
+      // description: "Create a new liquidity pool on Raydium"
     },
     position: { x: 250, y: 600 },
   },
@@ -100,7 +100,7 @@ const initialNodes = [
     type: "output",
     data: { 
       label: "🚀 Launch Ready!",
-      description: "Agent deployment configuration complete"
+      // description: "Agent deployment configuration complete"
     },
     position: { x: 250, y: 1200 },
     className: "bg-blue-100 dark:bg-blue-900",
