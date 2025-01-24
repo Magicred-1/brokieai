@@ -65,13 +65,54 @@ const initialNodes = [
   {
     id: "1",
     type: "input",
-    data: { label: "🤖 My AI Agent" },
+    data: { 
+      label: "🤖 My AI Agent",
+      description: "Starter agent with basic capabilities"
+    },
     position: { x: 250, y: 25 },
-    className: "text-gray-800 bg-white dark:text-gray-100 dark:bg-gray-800",
+    className: "bg-blue-100 dark:bg-blue-900",
+    deletable: false
+  },
+  {
+    id: "2",
+    type: "tokenDeploy",
+    data: {
+      label: "💰 Deploy Token",
+      tokenName: "AGENT-TOKEN",
+      tokenSymbol: "AGT",
+      supply: "1000000",
+      decimals: "6",
+      description: "Initial token deployment for agent economy"
+    },
+    position: { x: 250, y: 150 },
+  },
+  {
+    id: "3",
+    type: "raydium",
+    data: {
+      label: "🌊 Raydium Pool Create",
+      description: "Create a new liquidity pool on Raydium"
+    },
+    position: { x: 250, y: 600 },
+  },
+  {
+    id: "4",
+    type: "output",
+    data: { 
+      label: "🚀 Launch Ready!",
+      description: "Agent deployment configuration complete"
+    },
+    position: { x: 250, y: 1200 },
+    className: "bg-blue-100 dark:bg-blue-900",
+    deletable: false
   },
 ];
 
-const initialEdges: any[] = [];
+const initialEdges: any[] = [
+  { id: "e1-2", source: "1", target: "2", animated: true },
+  { id: "e2-3", source: "2", target: "3", animated: true },
+  { id: "e3-4", source: "3", target: "4", animated: true },
+];
 
 interface AgentDetails {
   name: string;
@@ -843,7 +884,7 @@ function Flow() {
           nodeTypes={solanaNodeTypes}
           connectionMode={ConnectionMode.Loose}
           fitView
-          className="bg-gray-50 dark:bg-gray-900"
+          className="bg-gray-50 dark:bg-gray-900 animate-fade-in"
         >
           <Background gap={12} size={1} />
           <Controls className="bg-white dark:bg-gray-800 shadow-md rounded-lg" />
