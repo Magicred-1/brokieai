@@ -104,6 +104,32 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     toast.success("Address copied to clipboard.");
   };
 
+//   async function generateSpeech({text, agentId} : {text: string, agentId: string}) {
+//     try {
+//         const response = await fetch(`/api/${agentId}/tts`, {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json",
+//             },
+//             body: JSON.stringify({ text }),
+//         });
+
+//         if (!response.ok) {
+//             const error = await response.json();
+//             throw new Error(error.details || "Failed to generate speech");
+//         }
+
+//         const audioBlob = await response.blob();
+//         const audioUrl = URL.createObjectURL(audioBlob);
+
+//         const audio = new Audio(audioUrl);
+//         audio.play();
+//     } catch (error) {
+//         console.error("Error generating speech:", error);
+//     }
+// }
+
+
   const initializeSpeechRecognition = () => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;

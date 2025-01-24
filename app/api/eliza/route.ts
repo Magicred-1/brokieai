@@ -2,9 +2,10 @@ import { createClient } from "@/utils/supabase";
 import { Keypair } from "@solana/web3.js";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { JwksClient } from "jwks-rsa";
+// import jwt, { JwtPayload } from "jsonwebtoken";
+// import { JwksClient } from "jwks-rsa";
 import { middleware } from "@/utils/auth/middleware";
+import bs58 from "bs58";
 
 function generate_characters(
   name: string,
@@ -17,7 +18,7 @@ function generate_characters(
     name: name,
     plugins: ["@elizaos/plugin-solana", "@elizaos/plugin-web-search"],
     clients: ["direct"],
-    modelProvider: "openai",
+    modelProvider: "deepseek",
     settings: {
       voice: { model: "en_US-hfc_female-medium" },
       secrets: {
@@ -54,7 +55,7 @@ function generate_characters(
 function generateSolanaWallet() {
   const keypair = Keypair.generate();
   const publicKey = keypair.publicKey.toBase58();
-  const privateKey = `[${keypair.secretKey.toString()}]`;
+  const privateKey = bs58.encode(keypair.secretKey);
 
   return { publicKey, privateKey };
 }
