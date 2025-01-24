@@ -1,3 +1,4 @@
+import { middleware } from "@/utils/auth/middleware";
 import { createClient } from "@/utils/supabase";
 import { DBAgentList } from "@/utils/types";
 import { NextResponse } from "next/server";
@@ -20,7 +21,25 @@ function extractAgentDetails(responseJson: DBAgentList) {
 export const GET = async (req: Request, { params }: Props) => {
   const { user } = await params;
 
-  if (!user) {
+  const middle = await middleware(req);
+
+  if (middle === "401") {
+    return NextResponse.json(
+      { error: "Unauthorized: Invalid token." },
+      { status: 401 }
+    );
+  }
+
+  if (middle === "403") {
+    return NextResponse.json(
+      { error: "Forbidden: Requires additional authentication." },
+      { status: 403 }
+    );
+  }
+
+  const userAddress = middle;
+
+  if (!user || user !== userAddress) {
     return NextResponse.json(
       { error: "Username is required" },
       { status: 400 }
@@ -33,7 +52,9 @@ export const GET = async (req: Request, { params }: Props) => {
     .select("*")
     .eq("owner", user);
 
-  const agents = supabaseData ? extractAgentDetails({ data: supabaseData }) : [];
+  const agents = supabaseData
+    ? extractAgentDetails({ data: supabaseData })
+    : [];
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
