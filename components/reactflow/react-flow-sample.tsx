@@ -67,7 +67,7 @@ const initialNodes = [
     type: "input",
     data: { 
       label: "🤖 My AI Agent",
-      description: "Starter agent with basic capabilities"
+      // description: "Starter agent with basic capabilities"
     },
     position: { x: 250, y: 25 },
     className: "bg-blue-100 dark:bg-blue-900",
