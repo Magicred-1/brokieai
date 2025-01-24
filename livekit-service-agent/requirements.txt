@@ -1,4 +1,5 @@
-livekit >= 0.18.0
+livekit
 livekit-protocol
-livekit-agents>=0.11.0
 livekit-plugins-openai>=0.10.5
+livekit-agents>=0.12.9
+livekit-plugins-google>=0.10.0

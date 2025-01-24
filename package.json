@@ -11,6 +11,9 @@
   "dependencies": {
     "@dynamic-labs/sdk-react-core": "^4.2.3",
     "@dynamic-labs/solana": "^4.2.3",
+    "@livekit/components-react": "^2.8.0",
+    "@livekit/components-styles": "^1.1.4",
+    "@livekit/krisp-noise-filter": "^0.2.14",
     "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
     "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-label": "^2.1.1",
@@ -40,7 +43,9 @@
     "sonner": "^1.7.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "uuid": "^11.0.5"
+    "uuid": "^11.0.5",
+    "livekit-client": "^2.8.0",
+    "livekit-server-sdk": "^2.9.7"
   },
   "devDependencies": {
     "@elizaos/plugin-solana": "^0.1.8",
