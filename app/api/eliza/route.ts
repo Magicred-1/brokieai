@@ -22,8 +22,8 @@ function generate_characters(
     settings: {
       voice: { model: "en_US-hfc_female-medium" },
       secrets: {
-        WALLET_PRIVATE_KEY: privateKey,
-        WALLET_PUBLIC_KEY: publicKey,
+        SOLANA_PRIVATE_KEY: privateKey,
+        SOLANA_PUBLIC_KEY: publicKey,
       },
     },
     bio: [description],
