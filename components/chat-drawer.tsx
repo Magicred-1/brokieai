@@ -10,7 +10,7 @@ import VoiceWave from "@/components/voice-wave"
 import debounce from "lodash/debounce"
 import { toast } from "sonner"
 import { AgentSelector } from "@/components/chat-agent-selector"
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core"
+import { getAuthToken, useDynamicContext } from "@dynamic-labs/sdk-react-core"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface Message {
@@ -213,9 +213,13 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
 
   useEffect(() => {
     if (!userAddress) return
-
-    fetch(`/api/eliza/list/${userAddress}`)
-      .then((response) => response.json())
+    const token = getAuthToken();
+    fetch(`/api/eliza/list/${userAddress}`, {
+      headers: {  
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // add jwt token
+      },
+    })  .then((response) => response.json())
       .then((data) => {
         if (data.data.length > 0) {
           setSelectedAgent(data.data[0])
