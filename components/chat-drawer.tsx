@@ -209,6 +209,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     recognitionRef.current = null
     setIsMicActive(false)
   }
+  
 
   useEffect(() => {
     if (!userAddress) return
