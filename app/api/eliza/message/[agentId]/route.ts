@@ -6,7 +6,7 @@ import fs from 'fs/promises';
 //TODO adding middleware to check the JWT token
 
 export async function POST(req: NextRequest, { params }: { params: { agentId: string } }) {
-    const { agentId } = params;
+    const { agentId } = await params;
     const elizaUrl = process.env.ELIZA_API_URL;
 
     console.log('ELIZA_API_URL:', elizaUrl, );
