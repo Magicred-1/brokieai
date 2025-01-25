@@ -16,9 +16,10 @@ function generate_characters(
   return {
     id: uuidv4(),
     name: name,
-    plugins: ["@elizaos/plugin-solana", "@elizaos/plugin-web-search"],
-    clients: ["direct"],
-    modelProvider: "deepseek",
+    plugins: ['@elizaos/plugin-solana-agentkit', '@elizaos/plugin-web-search', '@elizaos/plugin-coinmarketcap'],
+    clients: ['direct'],
+    modelProvider: 'openai',
+
     settings: {
       voice: { model: "en_US-hfc_female-medium" },
       secrets: {
