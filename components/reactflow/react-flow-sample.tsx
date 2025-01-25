@@ -60,6 +60,7 @@ import {
   solanaNodeTypes,
   // TokenDeployNode,
 } from "./nodes/solana-nodes";
+import { getAuthToken } from "@dynamic-labs/sdk-react-core";
 
 const initialNodes = [
   {
@@ -376,9 +377,13 @@ export const DeployDialog = () => {
     setLoading(true);
     try {
       // Deploy Agent
+      const token = getAuthToken();
       const agentResponse = await fetch("/api/eliza", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // add jwt token
+        },
         body: JSON.stringify({
           name: agentDetails.name,
           description: agentDetails.description,
@@ -435,48 +440,52 @@ export const DeployDialog = () => {
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[550px]">
-      <DialogHeader>
-  <div className="mb-6">
-    <div className="flex items-center justify-center">
-      {/* Progress line */}
-      <div className="absolute w-64 h-1 bg-gray-200 rounded-full"> {/* Increased width */}
-        <div 
-          className={`h-full bg-blue-500 rounded-full transition-all duration-300 ${
-            step === 2 ? "w-full" : "w-1/2"
-          }`}
-        />
-      </div>
-      
-      {/* Step indicators */}
-      <div className="flex justify-between relative z-10 w-64"> {/* Match progress bar width */}
-        {[1, 2].map((num) => (
-          <div key={num} className="flex flex-col items-center">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300
+        <DialogHeader>
+          <div className="mb-6">
+            <div className="flex items-center justify-center">
+              {/* Progress line */}
+              <div className="absolute w-64 h-1 bg-gray-200 rounded-full">
+                {" "}
+                {/* Increased width */}
+                <div
+                  className={`h-full bg-blue-500 rounded-full transition-all duration-300 ${
+                    step === 2 ? "w-full" : "w-1/2"
+                  }`}
+                />
+              </div>
+
+              {/* Step indicators */}
+              <div className="flex justify-between relative z-10 w-64">
+                {" "}
+                {/* Match progress bar width */}
+                {[1, 2].map((num) => (
+                  <div key={num} className="flex flex-col items-center">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300
                 ${
-                  step === num 
-                    ? "bg-blue-500 text-white ring-4 ring-blue-200" 
+                  step === num
+                    ? "bg-blue-500 text-white ring-4 ring-blue-200"
                     : "bg-gray-100 text-gray-400"
                 }`}
-            >
-              <span className="font-semibold">{num}</span>
+                    >
+                      <span className="font-semibold">{num}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  </div>
-  
-  <DialogTitle className="text-xl font-bold text-center">
-    {step === 1 ? "Agent Details" : "Token Details"}
-  </DialogTitle>
-  
-  <DialogDescription className="mt-2 text-gray-600 text-center">
-    {step === 1
-      ? "Provide information about your agent to deploy it."
-      : "Create a token for your agent (optional)"}
-  </DialogDescription>
-      </DialogHeader>
+
+          <DialogTitle className="text-xl font-bold text-center">
+            {step === 1 ? "Agent Details" : "Token Details"}
+          </DialogTitle>
+
+          <DialogDescription className="mt-2 text-gray-600 text-center">
+            {step === 1
+              ? "Provide information about your agent to deploy it."
+              : "Create a token for your agent (optional)"}
+          </DialogDescription>
+        </DialogHeader>
 
         {step === 1 ? (
           <div className="grid gap-6 py-4">
@@ -731,7 +740,7 @@ export const DeployDialog = () => {
               gravity={0.2}
               className="absolute inset-0 z-0"
             />
-            
+
             <div className="relative z-10 space-y-6 text-center">
               <DialogHeader>
                 <DialogTitle className="text-2xl">
@@ -745,7 +754,7 @@ export const DeployDialog = () => {
                   alt="Agent"
                   className="w-32 h-32 mx-auto rounded-full border-4 border-yellow-400 shadow-lg"
                 />
-                
+
                 {tokenData && (
                   <div className="bg-secondary p-4 rounded-lg space-y-2">
                     <p className="font-medium">Token Created:</p>
@@ -769,7 +778,9 @@ export const DeployDialog = () => {
                     </Button>
                     <div className="mt-2 flex items-center justify-center gap-2">
                       <SolanaIcon className="h-4 w-4" />
-                      <span>Initial Supply: {tokenDetails.initialBuyAmount} SOL</span>
+                      <span>
+                        Initial Supply: {tokenDetails.initialBuyAmount} SOL
+                      </span>
                     </div>
                   </div>
                 )}
@@ -779,7 +790,8 @@ export const DeployDialog = () => {
                   <div className="flex items-center justify-center gap-2 mt-2">
                     <Wallet className="h-4 w-4" />
                     <span className="text-sm">
-                      Deployed from: {primaryWallet?.address?.slice(0, 6)}...{primaryWallet?.address?.slice(-4)}
+                      Deployed from: {primaryWallet?.address?.slice(0, 6)}...
+                      {primaryWallet?.address?.slice(-4)}
                     </span>
                   </div>
                   <p className="mt-2 text-sm">
@@ -805,7 +817,6 @@ export const DeployDialog = () => {
     </Dialog>
   );
 };
-
 
 type KeyValue = {
   key: string;
