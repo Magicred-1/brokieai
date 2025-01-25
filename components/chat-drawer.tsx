@@ -9,7 +9,7 @@ import { motion } from "framer-motion"
 import VoiceWave from "@/components/voice-wave"
 import debounce from "lodash/debounce"
 import { toast } from "sonner"
-import { AgentSelector } from "./chat-agent-selector"
+import { AgentSelector } from "@/components/chat-agent-selector"
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -60,17 +60,17 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
       <motion.div
         className="w-2 h-2 bg-gray-600 rounded-full"
         animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+        transition={{ duration: 0.6, repeat: Number.POSITIVE_INFINITY, delay: 0 }}
       />
       <motion.div
         className="w-2 h-2 bg-gray-600 rounded-full"
         animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+        transition={{ duration: 0.6, repeat: Number.POSITIVE_INFINITY, delay: 0.2 }}
       />
       <motion.div
         className="w-2 h-2 bg-gray-600 rounded-full"
         animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+        transition={{ duration: 0.6, repeat: Number.POSITIVE_INFINITY, delay: 0.4 }}
       />
     </div>
   )
@@ -98,7 +98,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
         timestamp: new Date().toLocaleTimeString(),
       }
       setMessages((prev) => [...prev, userMessage])
-      setTextInput('')
+      setTextInput("")
       setIsResponding(true)
 
       try {
@@ -136,14 +136,12 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
         setMessages((prev) => [...prev, ...assistantMessages])
       } catch (error) {
         console.error("API Error:", error)
-        toast.error(
-          error instanceof Error ? error.message : "An unexpected error occurred"
-        )
+        toast.error(error instanceof Error ? error.message : "An unexpected error occurred")
       } finally {
         setIsResponding(false)
       }
     },
-    [selectedAgent, userAddress, user?.username]
+    [selectedAgent, userAddress, user?.username],
   )
 
   const handleSubmit = (content: string) => {
@@ -216,14 +214,14 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     if (!userAddress) return
 
     fetch(`/api/eliza/list/${userAddress}`)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (data.data.length > 0) {
           setSelectedAgent(data.data[0])
           setAgents(data.data)
         }
       })
-      .catch(error => console.error("Error fetching agents:", error))
+      .catch((error) => console.error("Error fetching agents:", error))
   }, [userAddress])
 
   useEffect(() => {
@@ -239,19 +237,21 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
   }
 
   const renderContent = () => {
-    if (!userAddress) return (
-      <div className="flex flex-col items-center justify-center h-full p-4">
-        <p className="text-center text-gray-500 text-lg">
-          Please connect your wallet to start chatting with your agents.
-        </p>
-      </div>
-    )
+    if (!userAddress)
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <p className="text-center text-gray-500 text-lg">
+            Please connect your wallet to start chatting with your agents.
+          </p>
+        </div>
+      )
 
-    if (agents.length === 0) return (
-      <div className="flex flex-col items-center justify-center h-full p-4">
-        <p className="text-center text-gray-500 text-lg">No agents found. Create your first agent to get started!</p>
-      </div>
-    )
+    if (agents.length === 0)
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <p className="text-center text-gray-500 text-lg">No agents found. Create your first agent to get started!</p>
+        </div>
+      )
 
     return (
       <div className="flex-1 overflow-y-auto space-y-4 px-4 pb-4" ref={chatWindowRef}>
@@ -266,9 +266,11 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                   </span>
                   <span className="text-xs text-muted-foreground">{message.timestamp}</span>
                 </div>
-                <p className={`text-sm mt-1 p-2 rounded-lg ${
-                  message.role === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"
-                }`}>
+                <p
+                  className={`text-sm mt-1 p-2 rounded-lg ${
+                    message.role === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"
+                  }`}
+                >
                   {message.content}
                 </p>
               </div>
@@ -340,7 +342,13 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
 
             <div className="sticky bottom-0 bg-background border-t">
               <div className="p-6">
-                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(textInput) }} className="flex gap-2">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    handleSubmit(textInput)
+                  }}
+                  className="flex gap-2"
+                >
                   <input
                     type="text"
                     value={textInput}
@@ -359,7 +367,9 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                           onClick={toggleMic}
                           disabled={!userAddress || isResponding}
                           className={`rounded-full p-2 ${
-                            isMicActive ? "bg-gradient-to-r from-purple-600 to-indigo-600" : "bg-gradient-to-r from-blue-500 to-teal-400"
+                            isMicActive
+                              ? "bg-gradient-to-r from-purple-600 to-indigo-600"
+                              : "bg-gradient-to-r from-blue-500 to-teal-400"
                           }`}
                         >
                           {isMicActive ? <VoiceWave isActive /> : <Mic className="h-6 w-6 text-white" />}
@@ -379,3 +389,4 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     </Sheet>
   )
 }
+
