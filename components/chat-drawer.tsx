@@ -331,7 +331,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             <div className="flex items-center justify-between">
               <SheetTitle className="text-2xl">{selectedAgent?.name}</SheetTitle>
               <div className="flex gap-2">
-                {/* {selectedAgent?.tokenAddress && ( */}
+                {selectedAgent?.tokenAddress && (
                   <>
                     <TooltipProvider>
                       <Tooltip>
@@ -359,7 +359,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                       </Tooltip>
                     </TooltipProvider>
                   </>
-                {/* )} */}
+                )}
               </div>
             </div>
           </SheetHeader>
