@@ -13,6 +13,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import SolanaIcon from "@/components/solana-icon";
+import { useState } from "react";
 // import SolanaIcon from '@/components/solana-icon';
 
 export interface SolanaNodeData extends Node {
@@ -24,7 +25,16 @@ export type SolanaNode = Node<SolanaNodeData>;
 export type SolanaNodeProps = NodeProps<SolanaNodeData>;
 
 // Token Management Nodes
-export const TokenDeployNode = ({ data, isConnectable }: SolanaNodeProps) => (
+export const TokenDeployNode = ({ data, isConnectable }: SolanaNodeProps) => {
+
+  const [tokenName, setTokenName] = useState<string>("");
+
+  const editDataKey = (key: string, value: string) => {
+    data[key] = value;
+  };
+  
+  return(
+
   <Card className="min-w-[300px] bg-white dark:bg-gray-800 shadow-lg">
     <Handle
       type="target"
@@ -40,7 +50,10 @@ export const TokenDeployNode = ({ data, isConnectable }: SolanaNodeProps) => (
     <CardContent className="space-y-3">
       <div className="grid gap-2">
         <Label>Token Name</Label>
-        <Input placeholder="Enter token name" />
+        <Input placeholder="Enter token name" value={tokenName} onChange={(e) =>{
+          setTokenName(e.target.value);
+          editDataKey("tokenName", e.target.value);
+        }}/>
       </div>
       <div className="grid gap-2">
         <Label>Token Symbol</Label>
@@ -58,7 +71,7 @@ export const TokenDeployNode = ({ data, isConnectable }: SolanaNodeProps) => (
       isConnectable={isConnectable}
     />
   </Card>
-);
+)};
 
 export const TransferNode = ({ data, isConnectable }: SolanaNodeProps) => (
   <Card className="min-w-[300px] bg-white dark:bg-gray-800 shadow-lg">

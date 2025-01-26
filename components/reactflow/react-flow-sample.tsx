@@ -15,6 +15,7 @@ import {
   MiniMap,
   Panel,
   useReactFlow,
+  useNodes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
@@ -347,6 +348,8 @@ export const DeployDialog = () => {
 
   const { user, primaryWallet, setShowAuthFlow } = useDynamicContext();
 
+  const nodes = useNodes();
+
   const uploadToIPFS = async (file: File) => {
     setLoading(true);
     try {
@@ -388,6 +391,7 @@ export const DeployDialog = () => {
           name: agentDetails.name,
           description: agentDetails.description,
           walletAddress: primaryWallet.address,
+          nodes: nodes,
         }),
       });
       const agentData = await agentResponse.json();
