@@ -149,6 +149,16 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     setTextInput("")
   }
 
+  const onFund = () => {
+    if (!selectedAgent?.tokenAddress) {
+      toast.error("No agent address available.")
+      return
+    }
+    // For demonstration - replace with actual funding logic
+    toast.info("Redirecting to agent funding interface...")
+    // Add your funding logic here (e.g., wallet transaction)
+  }
+
   const initializeSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognition) {
@@ -319,16 +329,41 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
         <div className="flex flex-col h-full">
           <SheetHeader className="px-6 py-4">
             <div className="flex items-center justify-between">
-              <SheetTitle className="text-2xl">
-                {selectedAgent?.name}
-                {selectedAgent?.tokenAddress && (
-                  <Button variant="secondary" onClick={onCopy} className="ml-2">
-                    <Copy className="mr-2 h-4 w-4" /> Copy Address
-                  </Button>
-                )}
-              </SheetTitle>
+              <SheetTitle className="text-2xl">{selectedAgent?.name}</SheetTitle>
+              <div className="flex gap-2">
+                {/* {selectedAgent?.tokenAddress && ( */}
+                  <>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="secondary" onClick={onCopy}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Copy Address
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Copy agent contract address</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="secondary" onClick={onFund}>
+                            💰 Fund Agent
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Send funds to this agent</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </>
+                {/* )} */}
+              </div>
             </div>
           </SheetHeader>
+        
 
           <div className="flex-1 flex flex-col min-h-0">
             <div className="px-6 py-4">
