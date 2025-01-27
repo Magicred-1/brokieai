@@ -181,7 +181,7 @@ export default function LandingPage() {
             <div className="relative">
               <div className="aspect-video relative bg-black rounded-lg overflow-hidden shadow-md">
               <HeroVideoDialog
-                videoSrc="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                videoSrc="#"
                 thumbnailSrc="/preview_video.png"
                 animationStyle="from-center"
               />
