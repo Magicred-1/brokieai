@@ -1,45 +1,44 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
-
-import { useEffect, useState, useRef, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ArrowLeft, Copy, Mic } from "lucide-react"
-import { motion } from "framer-motion"
-import VoiceWave from "@/components/voice-wave"
-import debounce from "lodash/debounce"
-import { toast } from "sonner"
-import { AgentSelector } from "@/components/chat-agent-selector"
-import { getAuthToken, useDynamicContext } from "@dynamic-labs/sdk-react-core"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { HoldToSpeak } from '@/components/hold-to-speak'
+import { useEffect, useState, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ArrowLeft, Copy, Send } from "lucide-react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { AgentSelector } from "@/components/chat-agent-selector";
+import { getAuthToken, useDynamicContext, useIsLoggedIn } from "@dynamic-labs/sdk-react-core";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useRecordVoice } from "@/hooks/use-record-voice";
+import { useDebouncedCallback } from "use-debounce";
+import { HoldToSpeak } from "@/components/hold-to-speak";
 
 interface Message {
-  role: string
-  content: string
-  timestamp: string
+  role: string;
+  content: string;
+  timestamp: string;
 }
 
 interface ChatDrawerProps {
-  isOpen: boolean
-  onToggle: () => void
-  AgentName: string
+  isOpen: boolean;
+  onToggle: () => void;
+  AgentName: string;
 }
 
 interface Agent {
-  id: string
-  name: string
-  tokenAddress?: string
+  id: string;
+  name: string;
+  tokenAddress?: string;
 }
 
 export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
-  const [isResponding, setIsResponding] = useState(false)
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>()
-  const [agents, setAgents] = useState<Agent[]>([])
-  const { user, primaryWallet } = useDynamicContext()
-  const userAddress = primaryWallet?.address ?? ""
-  const chatWindowRef = useRef<HTMLDivElement>(null)
-  const [textInput, setTextInput] = useState("")
+  const [isResponding, setIsResponding] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const { user, primaryWallet } = useDynamicContext();
+  const userAddress = primaryWallet?.address ?? "";
+  const chatWindowRef = useRef<HTMLDivElement>(null);
+  const [textInput, setTextInput] = useState("");
+  const { text } = useRecordVoice();
+  const isLoggedIn = useIsLoggedIn();
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -52,71 +51,42 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
       content: "Hi there! How can I assist you today?",
       timestamp: "10:16 AM",
     },
-  ])
-
-  const LoadingDots = () => (
-    <div className="flex space-x-1">
-      <motion.div
-        className="w-2 h-2 bg-gray-600 rounded-full"
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Number.POSITIVE_INFINITY, delay: 0 }}
-      />
-      <motion.div
-        className="w-2 h-2 bg-gray-600 rounded-full"
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Number.POSITIVE_INFINITY, delay: 0.2 }}
-      />
-      <motion.div
-        className="w-2 h-2 bg-gray-600 rounded-full"
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Number.POSITIVE_INFINITY, delay: 0.4 }}
-      />
-    </div>
-  )
+  ]);
 
   const sendMessage = useCallback(
     async (content: string) => {
       if (!content.trim()) {
-        toast.error("Message cannot be empty.")
-        return
+        toast.error("Message cannot be empty.");
+        return;
       }
 
       if (!selectedAgent?.id) {
-        toast.error("No agent selected. Please select an agent and try again.")
-        return
+        toast.error("No agent selected. Please select an agent and try again.");
+        return;
       }
 
       if (!userAddress) {
-        toast.error("User not identified. Please log in and try again.")
-        return
+        toast.error("User not identified. Please log in and try again.");
+        return;
       }
-
-      const userMessage: Message = {
-        role: "user",
-        content: content.trim(),
-        timestamp: new Date().toLocaleTimeString(),
-      }
-      setMessages((prev) => [...prev, userMessage])
-      setTextInput("")
-      setIsResponding(true)
 
       try {
-        const formData = new FormData()
-        formData.append("text", content.trim())
-        formData.append("userId", userAddress)
-        formData.append("roomId", `default-room-${selectedAgent.id}`)
-        formData.append("userName", user?.username ?? "Anonymous User")
+        const formData = new FormData();
+        formData.append("text", content.trim());
+        formData.append("userId", userAddress);
+        formData.append("roomId", `default-room-${selectedAgent.id}`);
+        formData.append("userName", user?.username ?? "Anonymous User");
 
         const response = await fetch(`/api/eliza/message/${selectedAgent.id}`, {
           method: "POST",
           body: formData,
-        })
+        });
 
         if (!response.ok) {
-          throw new Error("Failed to send message")
+          throw new Error("Failed to send message");
         }
 
-        const responseData = await response.json()
+        const responseData = await response.json();
 
         const assistantMessages: Message[] = Array.isArray(responseData)
           ? responseData.map((msg) => ({
@@ -130,61 +100,102 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                 content: responseData.text || "No response text",
                 timestamp: new Date().toLocaleTimeString(),
               },
-            ]
+            ];
 
-        setMessages((prev) => [...prev, ...assistantMessages])
+        setMessages((prev) => [...prev, ...assistantMessages]);
       } catch (error) {
-        console.error("API Error:", error)
-        toast.error(error instanceof Error ? error.message : "An unexpected error occurred")
+        console.error("API Error:", error);
+        toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
       } finally {
-        setIsResponding(false)
+        setIsResponding(false);
       }
     },
-    [selectedAgent, userAddress, user?.username],
-  )
+    [selectedAgent, userAddress, user?.username]
+  );
 
-  const handleSubmit = (content: string) => {
-    sendMessage(content)
-    setTextInput("")
-  }
+  const debouncedHandleText = useDebouncedCallback(() => {
+    if (text && !isResponding) {
+      sendMessage(text);
+    }
+  }, 1000);
+
+  useEffect(() => {
+    debouncedHandleText();
+    return () => debouncedHandleText.cancel();
+  }, [text, isResponding, debouncedHandleText]);
+
+  const handleSendMessage = async () => {
+    let messageContent = textInput.trim();
+
+    if (!messageContent && text.trim()) {
+      messageContent = text.trim();
+    }
+
+    if (messageContent) {
+      const userMessage: Message = {
+        role: "user",
+        content: messageContent,
+        timestamp: new Date().toLocaleTimeString(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setTextInput("");
+      setIsResponding(true);
+
+      await sendMessage(messageContent);
+    }
+  };
+
+  const LoadingDots = () => (
+    <div className="flex space-x-1">
+      <motion.div
+        className="w-2 h-2 bg-gray-600 rounded-full"
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+      />
+      <motion.div
+        className="w-2 h-2 bg-gray-600 rounded-full"
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+      />
+      <motion.div
+        className="w-2 h-2 bg-gray-600 rounded-full"
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+      />
+    </div>
+  );
 
   const onFund = () => {
     if (!selectedAgent?.tokenAddress) {
-      toast.error("No agent address available.")
-      return
+      toast.error("No agent address available.");
+      return;
     }
-    // For demonstration - replace with actual funding logic
-    toast.info("Redirecting to agent funding interface...")
-    // Add your funding logic here (e.g., wallet transaction)
-  }
+    toast.info("Redirecting to agent funding interface...");
+  };
 
   useEffect(() => {
-    if (!userAddress) return
+    if (!userAddress) return;
     const token = getAuthToken();
     fetch(`/api/eliza/list/${userAddress}`, {
-      headers: {  
+      headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // add jwt token
+        Authorization: `Bearer ${token}`,
       },
-    })  .then((response) => response.json())
+    })
+      .then((response) => response.json())
       .then((data) => {
         if (data.data.length > 0) {
-          setSelectedAgent(data.data[0])
-          setAgents(data.data)
+          setSelectedAgent(data.data[0]);
+          setAgents(data.data);
         }
       })
-      .catch((error) => console.error("Error fetching agents:", error))
-  }, [userAddress])
+      .catch((error) => console.error("Error fetching agents:", error));
+  }, [userAddress]);
 
   useEffect(() => {
-    chatWindowRef.current?.scrollTo(0, chatWindowRef.current.scrollHeight)
-  }, [messages, isResponding])
-
-  const onCopy = () => {
-    if (!selectedAgent?.tokenAddress) return
-    navigator.clipboard.writeText(selectedAgent.tokenAddress)
-    toast.success("Address copied to clipboard.")
-  }
+    chatWindowRef.current?.scrollTo(0, chatWindowRef.current.scrollHeight);
+  }, [messages, isResponding]);
 
   const renderContent = () => {
     if (!userAddress)
@@ -194,14 +205,14 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             Please connect your wallet to start chatting with your agents.
           </p>
         </div>
-      )
+      );
 
     if (agents.length === 0)
       return (
         <div className="flex flex-col items-center justify-center h-full p-4">
           <p className="text-center text-gray-500 text-lg">No agents found. Create your first agent to get started!</p>
         </div>
-      )
+      );
 
     return (
       <div className="flex-1 overflow-y-auto space-y-4 px-4 pb-4" ref={chatWindowRef}>
@@ -243,8 +254,15 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
+
+  const onCopy = () => {
+    if (selectedAgent?.tokenAddress) {
+      navigator.clipboard.writeText(selectedAgent.tokenAddress);
+      toast.success("Address copied to clipboard!");
+    }
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onToggle}>
@@ -302,7 +320,6 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
               </div>
             </div>
           </SheetHeader>
-        
 
           <div className="flex-1 flex flex-col min-h-0">
             <div className="px-6 py-4">
@@ -319,8 +336,8 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
               <div className="p-6">
                 <form
                   onSubmit={(e) => {
-                    e.preventDefault()
-                    handleSubmit(textInput)
+                    e.preventDefault();
+                    handleSendMessage();
                   }}
                   className="flex gap-2"
                 >
@@ -331,12 +348,21 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                     placeholder="Type your message..."
                     className="flex-grow p-2 border rounded-md"
                   />
-                  <Button type="submit" disabled={!userAddress || isResponding}>
+                  <Button
+                    variant="outline"
+                    className="bg-gradient-to-r from-blue-500 to-teal-400 text-white"
+                    type="submit"
+                    disabled={!userAddress || isResponding}
+                  >
+                    <Send className="h-6 w-6 text-white" />
                     Send
                   </Button>
-                  <div className="sticky bottom-4 left-0 right-0 flex justify-center">
-                    <HoldToSpeak
-                      onTranscription={(text) => {
+                </form>
+                <div className="mt-4 flex justify-center">
+                <div className="sticky bottom-4 left-0 right-0 flex justify-center">
+                  <HoldToSpeak
+                    onTranscription={(text: string) => {
+                      if (text.trim()) {
                         setMessages((prev) => [
                           ...prev,
                           {
@@ -345,17 +371,22 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                             timestamp: new Date().toLocaleTimeString(),
                           },
                         ]);
-                      }}
-                      isLoading={isResponding}
-                    />
+
+                        setIsResponding(true);
+
+                        sendMessage(text.trim()); // Trigger the sendMessage function with the transcribed text
+                      }
+                    }}
+                    isLoading={isResponding}
+                    isDisabled={!isLoggedIn || !selectedAgent}
+                  />
                   </div>
-                </form>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }
-

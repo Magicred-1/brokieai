@@ -11,7 +11,6 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const audioFile = formData.get('audio') as Blob;
-    const audioFileAsFile = new File([audioFile], 'audio.wav', { type: audioFile.type });
 
     if (!audioFile) {
       return NextResponse.json(
@@ -19,6 +18,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Convert Blob to File with correct MIME type
+    const audioFileAsFile = new File([audioFile], 'audio.wav', { type: 'audio/wav' });
 
     const transcription = await openai.audio.transcriptions.create({
       file: audioFileAsFile,
@@ -33,4 +35,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

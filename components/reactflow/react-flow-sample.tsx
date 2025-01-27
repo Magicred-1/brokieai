@@ -46,7 +46,6 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -60,7 +59,7 @@ import {
   solanaNodeTypes,
   // TokenDeployNode,
 } from "./nodes/solana-nodes";
-import { getAuthToken } from "@dynamic-labs/sdk-react-core";
+import { useDynamicContext, getAuthToken } from "@dynamic-labs/sdk-react-core";
 
 const initialNodes = [
   {

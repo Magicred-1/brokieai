@@ -3,19 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs/promises';
 
-//TODO adding middleware to check the JWT token
-
-type Props = {
-    params: Promise<{
-      agentId: string;
-    }>;
-  };
-
-export const POST = async (req: Request, { params }: Props) =>{
-    const { agentId } = await params;
+export const POST = async (
+    req: NextRequest,
+    context: { params: { agentId: string } }
+) => {
+    const { agentId } = context.params;
     const elizaUrl = process.env.ELIZA_API_URL;
-
-    console.log('ELIZA_API_URL:', elizaUrl, );
 
     if (!elizaUrl) {
         return NextResponse.json(
@@ -58,21 +51,6 @@ export const POST = async (req: Request, { params }: Props) =>{
             });
         }
 
-        // Construct the message content
-        // const content = {
-        //     text,
-        //     attachments,
-        //     source: 'direct',
-        //     inReplyTo: undefined,
-        // };
-
-        // const userMessage = {
-        //     content,
-        //     userId,
-        //     roomId,
-        //     agentId,
-        // };
-
         // Create a new FormData object to forward to the ELIZA API
         const forwardFormData = new FormData();
         forwardFormData.append('roomId', roomId);
@@ -89,7 +67,6 @@ export const POST = async (req: Request, { params }: Props) =>{
         const response = await fetch(`${elizaUrl}/${agentId}/message`, {
             method: 'POST',
             body: forwardFormData,
-            // Automatically sets the correct Content-Type header for FormData
         });
 
         if (!response.ok) {
@@ -108,4 +85,4 @@ export const POST = async (req: Request, { params }: Props) =>{
             { status: 500 }
         );
     }
-}
+};
