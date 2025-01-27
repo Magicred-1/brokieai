@@ -1,9 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export const POST = async (
-    req: NextRequest,
-    context: { params: { agentId: string } }
-) => {
+type Props = {
+    params: Promise<{
+      agentId: string;
+    }>;
+  };
+  
+export const POST = async (req: Request, { params }: Props) =>{
+    const { agentId } = await params;
+
     try {
         // Ensure it's a POST method
         if (req.method !== "POST") {
@@ -24,14 +29,12 @@ export const POST = async (
             );
         }
 
-        if (!context.params.agentId) {
+        if (!agentId) {
             return NextResponse.json(
                 { error: "Agent ID is required" },
                 { status: 400 }
             );
         }
-
-        const { agentId } = context.params;
 
         // Construct the external API URL with agentId in the path
         const elizaOSApiURL = `${process.env.ELIZA_API_URL}/${agentId}/speak`;

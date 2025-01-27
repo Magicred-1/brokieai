@@ -16,8 +16,6 @@ export function HoldToSpeak({ onTranscription, isLoading = false, isDisabled = f
   const audioChunksRef = useRef<Blob[]>([]);
 
   const startRecording = useCallback(async () => {
-    if (isDisabled || isLoading) return;
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -30,49 +28,49 @@ export function HoldToSpeak({ onTranscription, isLoading = false, isDisabled = f
         }
       };
 
-      mediaRecorder.onstop = () => {
-        // Stop all tracks to release the microphone
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
       mediaRecorder.start();
       setIsRecording(true);
     } catch (error) {
       console.error('Error accessing microphone:', error);
       toast.error('Failed to access microphone. Please check your permissions.');
     }
-  }, [isDisabled, isLoading]);
+  }, []);
 
   const stopRecording = useCallback(async () => {
     if (!mediaRecorderRef.current) return;
 
-    const mediaRecorder = mediaRecorderRef.current;
-    mediaRecorder.stop();
-    setIsRecording(false);
+    return new Promise<void>((resolve) => {
+      const mediaRecorder = mediaRecorderRef.current!;
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
 
-    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.wav');
+        try {
+          const response = await fetch('/api/transcribe', {
+            method: 'POST',
+            body: formData,
+          });
 
-    try {
-      const response = await fetch('/api/transcribe', {
-        method: 'POST',
-        body: formData,
-      });
+          if (!response.ok) {
+            throw new Error('Transcription failed');
+          }
 
-      if (!response.ok) {
-        throw new Error('Transcription failed');
-      }
+          const data = await response.json();
+          onTranscription(data.text);
+        } catch (error) {
+          console.error('Transcription error:', error);
+          toast.error('Failed to transcribe audio');
+        }
 
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      onTranscription(data.text);
-    } catch (error) {
-      console.error('Transcription error:', error);
-      toast.error('Failed to transcribe audio. Please try again.');
-    }
+        // Stop all tracks
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        resolve();
+      };
+
+      mediaRecorder.stop();
+    });
   }, [onTranscription]);
 
   return (
