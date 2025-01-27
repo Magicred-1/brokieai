@@ -2,8 +2,6 @@ import { createClient } from "@/utils/supabase";
 import { Keypair } from "@solana/web3.js";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-// import jwt, { JwtPayload } from "jsonwebtoken";
-// import { JwksClient } from "jwks-rsa";
 import { middleware } from "@/utils/auth/middleware";
 import bs58 from "bs58";
 import { Node } from "@xyflow/react";
@@ -15,12 +13,24 @@ enum NodeLabel {
   CREATE_RADIUM_POOL = "🌊 Raydium Pool Create",
 };
 
-
 const prePrompt = {
   TOKEN_DEPLOY: "Deploy a new token named {{tokenName}} with symbol {{tokenSymbol}} and {{maxSupply}}. max supply.",
   CREATE_RADIUM_POOL: "Create a new Radium pool named {{poolName}} with {{poolSize}}.",
 };
 
+
+const verifyAgentExist = async (agentId: string) => {
+    const response = await fetch(`${process.env.ELIZA_API_URL}/agents/${agentId}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    return true;
+
+}
 
 const callAgent = async (agentId: string, prompt: string, userAddress: string) => {
   const formData = new FormData()
@@ -65,7 +75,7 @@ function generate_characters(
     name: name,
     plugins: ['@elizaos/plugin-solana-agentkit', '@elizaos/plugin-web-search', '@elizaos/plugin-coinmarketcap'],
     clients: ['direct'],
-    modelProvider: 'openai',
+    modelProvider: 'google',
 
     settings: {
       voice: { model: "en_US-hfc_female-medium" },
@@ -204,6 +214,25 @@ export const POST = async (req: Request) => {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // check if the agent is created successfully
+    let attempts = 0;
+    const maxAttempts = 5;
+    await new Promise<void>((resolve, reject) => {
+      const interval = setInterval(async () => {
+      attempts++;
+      const agentExist = await verifyAgentExist(character.id);
+      if (agentExist) {
+        clearInterval(interval);
+        console.log("Agent created successfully!");
+        resolve();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        console.error("Failed to verify agent existence after multiple attempts.");
+        reject(new Error("Failed to verify agent existence after multiple attempts."));
+      }
+      }, 5000); // = 5 seconds
+    });
 
     // if agent created, call it with the nodes
 

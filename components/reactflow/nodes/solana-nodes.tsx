@@ -28,6 +28,8 @@ export type SolanaNodeProps = NodeProps<SolanaNodeData>;
 export const TokenDeployNode = ({ data, isConnectable }: SolanaNodeProps) => {
 
   const [tokenName, setTokenName] = useState<string>("");
+  const [tokenSymbol, setTokenSymbol] = useState<string>("");
+  const [maxSupply, setMaxSupply] = useState<string>("");
 
   const editDataKey = (key: string, value: string) => {
     data[key] = value;
@@ -57,11 +59,19 @@ export const TokenDeployNode = ({ data, isConnectable }: SolanaNodeProps) => {
       </div>
       <div className="grid gap-2">
         <Label>Token Symbol</Label>
-        <Input placeholder="Enter token symbol" />
+        <Input placeholder="Enter token symbol" 
+        onChange={(e) =>{
+          setTokenSymbol(e.target.value);
+          editDataKey("tokenSymbol", e.target.value);
+        }}/>
       </div>
       <div className="grid gap-2">
         <Label>Total Supply</Label>
-        <Input type="number" placeholder="1000000" />
+        <Input type="number" placeholder="1000000"
+        onChange={(e)=> {
+          setMaxSupply(e.target.value);
+          editDataKey("maxSupply", e.target.value);
+        }}/>
       </div>
       <Button className="w-full">Deploy Token</Button>
     </CardContent>
