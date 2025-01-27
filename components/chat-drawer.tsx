@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import { AgentSelector } from "@/components/chat-agent-selector"
 import { getAuthToken, useDynamicContext } from "@dynamic-labs/sdk-react-core"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { HoldToSpeak } from '@/components/hold-to-speak'
 
 interface Message {
   role: string
@@ -32,9 +33,7 @@ interface Agent {
 }
 
 export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
-  const [isMicActive, setIsMicActive] = useState(false)
   const [isResponding, setIsResponding] = useState(false)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>()
   const [agents, setAgents] = useState<Agent[]>([])
   const { user, primaryWallet } = useDynamicContext()
@@ -159,68 +158,6 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     // Add your funding logic here (e.g., wallet transaction)
   }
 
-  const initializeSpeechRecognition = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) {
-      toast.error("Speech recognition not supported on this browser.")
-      return null
-    }
-
-    const recognition = new SpeechRecognition()
-    recognition.continuous = true
-    recognition.interimResults = true
-    recognition.lang = "en-US"
-
-    recognition.onresult = debounce((event: any) => {
-      let finalTranscript = ""
-      let interimTranscript = ""
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript
-        } else {
-          interimTranscript += transcript
-        }
-      }
-
-      if (interimTranscript) setTextInput(interimTranscript.trim())
-      if (finalTranscript) handleSubmit(finalTranscript.trim())
-    }, 300)
-
-    recognition.onerror = (event: any) => {
-      toast.error(`Speech recognition error: ${event.error}`)
-      stopSpeechRecognition()
-    }
-
-    recognition.onend = () => {
-      if (isMicActive) recognition.start()
-    }
-
-    return recognition
-  }
-
-  const startSpeechRecognition = async () => {
-    const recognition = initializeSpeechRecognition()
-    if (!recognition) return
-
-    try {
-      recognitionRef.current = recognition
-      recognition.start()
-      setIsMicActive(true)
-    } catch (error) {
-      toast.error("Failed to start speech recognition.")
-      console.error("Speech recognition error:", error)
-    }
-  }
-
-  const stopSpeechRecognition = () => {
-    recognitionRef.current?.stop()
-    recognitionRef.current = null
-    setIsMicActive(false)
-  }
-  
-
   useEffect(() => {
     if (!userAddress) return
     const token = getAuthToken();
@@ -242,8 +179,6 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
   useEffect(() => {
     chatWindowRef.current?.scrollTo(0, chatWindowRef.current.scrollHeight)
   }, [messages, isResponding])
-
-  const toggleMic = () => (isMicActive ? stopSpeechRecognition() : startSpeechRecognition())
 
   const onCopy = () => {
     if (!selectedAgent?.tokenAddress) return
@@ -399,27 +334,21 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                   <Button type="submit" disabled={!userAddress || isResponding}>
                     Send
                   </Button>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          onClick={toggleMic}
-                          disabled={!userAddress || isResponding}
-                          className={`rounded-full p-2 ${
-                            isMicActive
-                              ? "bg-gradient-to-r from-purple-600 to-indigo-600"
-                              : "bg-gradient-to-r from-blue-500 to-teal-400"
-                          }`}
-                        >
-                          {isMicActive ? <VoiceWave isActive /> : <Mic className="h-6 w-6 text-white" />}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{isMicActive ? "Stop recording" : "Start recording"}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <div className="sticky bottom-4 left-0 right-0 flex justify-center">
+                    <HoldToSpeak
+                      onTranscription={(text) => {
+                        setMessages((prev) => [
+                          ...prev,
+                          {
+                            role: "user",
+                            content: text,
+                            timestamp: new Date().toLocaleTimeString(),
+                          },
+                        ]);
+                      }}
+                      isLoading={isResponding}
+                    />
+                  </div>
                 </form>
               </div>
             </div>
