@@ -3,10 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs/promises';
 
-export const POST = async (
-    req: NextRequest,
-    context: { params: { agentId: string } }
-) => {
+type Props = {
+    params: Promise<{
+      agentId: string;
+    }>;
+  };
+export const POST = async (req: Request, { params }: Props) =>{
     const { agentId } = context.params;
     const elizaUrl = process.env.ELIZA_API_URL;
 
