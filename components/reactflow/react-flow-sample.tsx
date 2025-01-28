@@ -929,96 +929,108 @@ export const DeployDialog = () => {
                   Your AI agent is now deployed on the Solana blockchain
                 </DialogDescription>
               </DialogHeader>
-
               <div className="space-y-6 w-full">
-                <div className="relative mx-auto">
-                  <div className="relative w-36 h-36 mx-auto animate-pop-in">
-                    <Image
-                      src={agentData?.image || imageFile ? URL.createObjectURL(imageFile) : "/images/agent-placeholder.png"}
-                      alt="Agent"
-                      fill
-                      className="rounded-full border-[3px] border-white/20 shadow-2xl"
-                      style={{ objectFit: "cover" }}
-                    />
-                    <div className="absolute -bottom-2 right-2 bg-green-500 p-2 rounded-full border-2 border-white shadow-md">
-                      <Check className="h-5 w-5 text-white" />
-                    </div>
-                  </div>
-                </div>
+  <div className="relative mx-auto">
+    <div className="relative w-36 h-36 mx-auto animate-pop-in">
+      <Image
+        src={agentData?.image || (imageFile ? URL.createObjectURL(imageFile) : "/images/agent-placeholder.png")}
+        alt="Agent"
+        fill
+        className="rounded-full border-[3px] border-white/20 shadow-2xl"
+        style={{ objectFit: "cover" }}
+      />
+      <div className="absolute -bottom-2 right-2 bg-green-500 p-2 rounded-full border-2 border-white shadow-md">
+        <Check className="h-5 w-5 text-white" />
+      </div>
+    </div>
+  </div>
 
-                {tokenData && (
-                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-5 rounded-xl space-y-3 border border-white/10 shadow-xl animate-fade-in">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Wallet className="h-5 w-5 text-blue-400" />
-                        <span className="font-semibold">Token Address</span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          navigator.clipboard.writeText(tokenData.address)
-                          toast.success('Address copied!')
-                        }}
-                        className="border-white/20 hover:bg-white/5"
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy
-                      </Button>
-                    </div>
-                    <code className="block text-sm font-mono break-all p-3 bg-black/20 rounded-lg text-green-400/90 hover:text-green-300 transition-colors">
-                      {tokenData.address}
-                    </code>
-                    
-                    <div className="pt-3 grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2 p-3 bg-black/20 rounded-lg">
-                        <Coins className="h-5 w-5 text-purple-400" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Initial Supply</p>
-                          <p className="font-semibold">{tokenDetails.initialBuyAmount} SOL</p>
-                        </div>
-                      </div>
-                      
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="border-white/20 hover:bg-white/5 h-full"
-                      >
-                        <a
-                          href={`https://pump.fun/coin/${tokenData.address}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          Return to Dashboard
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-                )}
+  {tokenData && (
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-5 rounded-xl space-y-3 border border-white/10 shadow-xl animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-5 w-5 text-blue-400" />
+          <span className="font-semibold">Token Address</span>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (tokenData.address) {
+              navigator.clipboard.writeText(tokenData.address);
+              toast.success('Address copied!');
+            } else {
+              toast.error('No address available to copy');
+            }
+          }}
+          className="border-white/20 hover:bg-white/5"
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          Copy
+        </Button>
+      </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="bg-white/5 p-4 rounded-lg border border-white/10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Key className="h-4 w-4 text-blue-400" />
-                      <span className="font-medium">Token Address</span>
-                    </div>
-                    <p className="text-muted-foreground font-mono truncate">
-                      {tokenData?.walletAddress}
-                    </p>
-                  </div>
-                  <div className="bg-white/5 p-4 rounded-lg border border-white/10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="h-4 w-4 text-yellow-400" />
-                      <span className="font-medium">Pre-funded</span>
-                    </div>
-                    <p className="text-muted-foreground">
-                      {createToken ? "0.5 SOL" : "0.2 SOL"}
-                    </p>
-                  </div>
-                </div>
-              </div>
+      {tokenData.address && (
+        <code className="block text-sm font-mono break-all p-3 bg-black/20 rounded-lg text-green-400/90 hover:text-green-300 transition-colors">
+          {tokenData.address}
+        </code>
+      )}
+
+      <div className="pt-3 grid grid-cols-2 gap-4">
+        {tokenDetails?.initialBuyAmount && (
+          <div className="flex items-center gap-2 p-3 bg-black/20 rounded-lg">
+            <Coins className="h-5 w-5 text-purple-400" />
+            <div>
+              <p className="text-xs text-muted-foreground">Initial Supply</p>
+              <p className="font-semibold">{tokenDetails.initialBuyAmount} SOL</p>
+            </div>
+          </div>
+        )}
+
+        <Button
+          asChild
+          variant="outline"
+          className="border-white/20 hover:bg-white/5 h-full"
+        >
+          <a
+            href={tokenData.address ? `https://pump.fun/coin/${tokenData.address}` : "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Return to Dashboard
+          </a>
+        </Button>
+      </div>
+    </div>
+  )}
+
+  <div className="grid grid-cols-2 gap-4 text-sm">
+    {tokenData?.walletAddress && (
+      <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+        <div className="flex items-center gap-2 mb-2">
+          <Key className="h-4 w-4 text-blue-400" />
+          <span className="font-medium">Token Address</span>
+        </div>
+        <p className="text-muted-foreground font-mono truncate">
+          {tokenData.walletAddress}
+        </p>
+      </div>
+    )}
+
+    <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+      <div className="flex items-center gap-2 mb-2">
+        <Zap className="h-4 w-4 text-yellow-400" />
+        <span className="font-medium">Pre-funded</span>
+      </div>
+      <p className="text-muted-foreground">
+        {createToken ? "0.5 SOL" : "0.2 SOL"}
+      </p>
+    </div>
+  </div>
+</div>
+
 
               <DialogFooter className="w-full">
                 <Button
