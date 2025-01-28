@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 
-export const POST = async (req: Request) => {
+type Props = {
+    params: Promise<{
+      agentId: string;
+    }>;
+  };
+  
+export const POST = async (req: Request, { params }: Props) =>{
+    const { agentId } = await params;
+
     try {
         // Ensure it's a POST method
         if (req.method !== "POST") {
@@ -12,7 +20,7 @@ export const POST = async (req: Request) => {
 
         // Parse the request body to get text
         const body = await req.json();
-        const { text, agentId } = body;
+        const { text } = body;
 
         if (!text) {
             return NextResponse.json(
@@ -29,15 +37,20 @@ export const POST = async (req: Request) => {
         }
 
         // Construct the external API URL with agentId in the path
-        const elizaOSApiURL = `${process.env.ELIZA_API_URL}/${agentId}/tts`;
+        const elizaOSApiURL = `${process.env.ELIZA_API_URL}/${agentId}/speak`;
+
+        // Prepare the data as application/x-www-form-urlencoded format
+        const formData = new URLSearchParams({
+            text: text,
+        }).toString();
 
         // Call the external API
         const speechResponse = await fetch(elizaOSApiURL, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: JSON.stringify({ text }),
+            body: formData,
         });
 
         console.log("Speech response status:", speechResponse.status);

@@ -39,7 +39,7 @@ export const GET = async (req: Request, { params }: Props) => {
 
   const userAddress = middle;
 
-  if (!user || user !== userAddress) {
+  if (!user || !userAddress) {
     return NextResponse.json(
       { error: "Username is required" },
       { status: 400 }
