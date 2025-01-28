@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/utils/supabase";
 import { Keypair } from "@solana/web3.js";
 import { NextResponse } from "next/server";
@@ -62,6 +63,14 @@ type RequestData = {
   description: string;
   nodes: Node[];
   walletAddress: string;
+  bio?: string[];
+  lore?: string;
+  style?: { all: string[]; chat: string[]; post: string[] };
+  topics?: string[];
+  knowledge?: string[];
+  adjectives?: string[];
+  postExamples?: string[];
+  messageExamples?: { role: string; content: string }[];
 };
 
 function generate_characters(
@@ -118,18 +127,7 @@ export const POST = async (req: Request) => {
     }
 
     const userAddress = middle;
-    
     const requestData: RequestData = await req.json();
-    const { name, description, nodes, walletAddress } = requestData;
-
-    if (!userAddress || !walletAddress || (userAddress !== walletAddress)) {
-      return NextResponse.json(
-        { error: "Wallet Address is required" },
-        { status: 400 }
-      );
-    }
-
-    const requestData = await req.json();
     const { 
       name,
       description,
@@ -140,8 +138,17 @@ export const POST = async (req: Request) => {
       knowledge = [],
       adjectives = [],
       postExamples = [],
-      messageExamples = []
+      messageExamples = [],
+      nodes,
+      walletAddress,
     } = requestData;
+    
+    if (!userAddress || !walletAddress || (userAddress !== walletAddress)) {
+      return NextResponse.json(
+        { error: "Wallet Address is required" },
+        { status: 400 }
+      );
+    }
 
     if (!name || !description) {
       return NextResponse.json(
@@ -218,7 +225,7 @@ export const POST = async (req: Request) => {
 
     // if agent created, call it with the nodes
 
-    nodes.forEach(async (node) => {
+    nodes.forEach(async (node: Node) => {
       console.log("Node", node.data.label);
       if (node.data.label === NodeLabel.TOKEN_DEPLOY) {
         console.log("Deploying token", node.data);

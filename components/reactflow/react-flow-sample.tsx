@@ -26,11 +26,11 @@ import {
   TwitterIcon,
   Twitter,
   LinkIcon,
-  ArrowUpRight,
-  PartyPopper,
+  // ArrowUpRight,
+  // PartyPopper,
   Check,
   Copy,
-  Link,
+  // Link,
   Loader2,
   X,
   Coins,
@@ -72,6 +72,7 @@ import {
 import Image from 'next/image';
 import { useDynamicContext, getAuthToken } from "@dynamic-labs/sdk-react-core";
 import { toast } from "sonner";
+import PumpFunIcon from "../pumfun-icon";
 
 const initialNodes = [
   {
@@ -435,7 +436,7 @@ export const DeployDialog = () => {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={placeholder || `Add ${label.toLowerCase()}...`}
+          placeholder={placeholder ?? `Add ${label.toLowerCase()}...`}
           className="flex-1"
           onKeyPress={(e) => {
             if (e.key === 'Enter' && input.trim()) {
@@ -481,7 +482,7 @@ export const DeployDialog = () => {
 
   const handleDialogSubmit = async () => {
     if (!agentDetails.name || !primaryWallet?.address) return;
-
+  
     setLoading(true);
     try {
       const token = getAuthToken();
@@ -495,14 +496,20 @@ export const DeployDialog = () => {
           ...agentDetails,
           walletAddress: primaryWallet.address,
           nodes: nodes,
-          messageExamples: agentDetails.messageExamples.map((example: string) => [{
+          messageExamples: agentDetails.messageExamples.map((example: string) => ({
             user: "{{user1}}",
             content: { text: example }
+          })),
         }),
       });
+  
+      if (!agentResponse.ok) {
+        throw new Error('Agent creation failed');
+      }
+  
       const agentData = await agentResponse.json();
       setAgentData(agentData);
-
+  
       if (createToken) {
         const tokenResponse = await fetch("/api/token/deploy", {
           method: "POST",
@@ -513,13 +520,20 @@ export const DeployDialog = () => {
             walletAddress: primaryWallet.address,
           }),
         });
+  
+        if (!tokenResponse.ok) {
+          throw new Error('Token deployment failed');
+        }
+  
         const tokenData = await tokenResponse.json();
         setTokenData(tokenData);
       }
-
+  
       setDeploymentSuccess(true);
+      setConfirmationOpen(false); // Close the dialog on success
     } catch (error) {
       console.error("Deployment failed", error);
+      toast.error("Deployment failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -535,6 +549,7 @@ export const DeployDialog = () => {
       </Button>
     );
   }
+  
 
   return (
     <Dialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
@@ -893,7 +908,7 @@ export const DeployDialog = () => {
         </DialogFooter>
 
         {deploymentSuccess && (
-          <DialogContent className="relative overflow-hidden">
+          <DialogContent>
             <Confetti
               width={window.innerWidth}
               height={window.innerHeight}
@@ -901,7 +916,7 @@ export const DeployDialog = () => {
               numberOfPieces={800}
               gravity={0.15}
               wind={0.02}
-              className="absolute inset-0 z-0"
+              className="text-blue-500"
             />
 
             <div className="flex flex-col items-center space-y-6">
@@ -919,7 +934,7 @@ export const DeployDialog = () => {
                 <div className="relative mx-auto">
                   <div className="relative w-36 h-36 mx-auto animate-pop-in">
                     <Image
-                      src={agentData?.image || "/default-agent-image.png"}
+                      src={agentData?.image || imageFile ? URL.createObjectURL(imageFile) : "/images/agent-placeholder.png"}
                       alt="Agent"
                       fill
                       className="rounded-full border-[3px] border-white/20 shadow-2xl"
@@ -976,7 +991,7 @@ export const DeployDialog = () => {
                           className="flex items-center justify-center gap-2"
                         >
                           <ExternalLink className="h-4 w-4" />
-                          View on Pump.fun
+                          Return to Dashboard
                         </a>
                       </Button>
                     </div>
@@ -1017,8 +1032,8 @@ export const DeployDialog = () => {
                     rel="noopener noreferrer"
                     className="gap-2"
                   >
-                    <Rocket className="h-5 w-5" />
-                    Launch Dashboard
+                    <PumpFunIcon className="h-5 w-5" />
+                    View on Pump.fun
                   </a>
                 </Button>
               </DialogFooter>
