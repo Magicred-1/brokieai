@@ -7,14 +7,15 @@ import { toast } from "sonner";
 import { AgentSelector } from "@/components/chat-agent-selector";
 import { getAuthToken, useDynamicContext, useIsLoggedIn } from "@dynamic-labs/sdk-react-core";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useRecordVoice } from "@/hooks/use-record-voice";
-import { useDebouncedCallback } from "use-debounce";
 import { HoldToSpeak } from "@/components/hold-to-speak";
+import { Skeleton } from "./ui/skeleton";
+import AudioPlayer from "./audio-player";
 
 interface Message {
   role: string;
   content: string;
   timestamp: string;
+  audioURL?: string;
 }
 
 interface ChatDrawerProps {
@@ -26,7 +27,7 @@ interface ChatDrawerProps {
 interface Agent {
   id: string;
   name: string;
-  tokenAddress?: string;
+  walletAddress?: string;
 }
 
 export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
@@ -37,7 +38,6 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
   const userAddress = primaryWallet?.address ?? "";
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const [textInput, setTextInput] = useState("");
-  const { text } = useRecordVoice();
   const isLoggedIn = useIsLoggedIn();
 
   const [messages, setMessages] = useState<Message[]>([
@@ -52,127 +52,6 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
       timestamp: "10:16 AM",
     },
   ]);
-
-  const sendMessage = useCallback(
-    async (content: string) => {
-      if (!content.trim()) {
-        toast.error("Message cannot be empty.");
-        return;
-      }
-
-      if (!selectedAgent?.id) {
-        toast.error("No agent selected. Please select an agent and try again.");
-        return;
-      }
-
-      if (!userAddress) {
-        toast.error("User not identified. Please log in and try again.");
-        return;
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append("text", content.trim());
-        formData.append("userId", userAddress);
-        formData.append("roomId", `default-room-${selectedAgent.id}`);
-        formData.append("userName", user?.username ?? "Anonymous User");
-
-        const response = await fetch(`/api/eliza/message/${selectedAgent.id}`, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to send message");
-        }
-
-        const responseData = await response.json();
-
-        const assistantMessages: Message[] = Array.isArray(responseData)
-          ? responseData.map((msg) => ({
-              role: "assistant",
-              content: msg.text || "No response text",
-              timestamp: new Date().toLocaleTimeString(),
-            }))
-          : [
-              {
-                role: "assistant",
-                content: responseData.text || "No response text",
-                timestamp: new Date().toLocaleTimeString(),
-              },
-            ];
-
-        setMessages((prev) => [...prev, ...assistantMessages]);
-      } catch (error) {
-        console.error("API Error:", error);
-        toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
-      } finally {
-        setIsResponding(false);
-      }
-    },
-    [selectedAgent, userAddress, user?.username]
-  );
-
-  const debouncedHandleText = useDebouncedCallback(() => {
-    if (text && !isResponding) {
-      sendMessage(text);
-    }
-  }, 1000);
-
-  useEffect(() => {
-    debouncedHandleText();
-    return () => debouncedHandleText.cancel();
-  }, [text, isResponding, debouncedHandleText]);
-
-  const handleSendMessage = async () => {
-    let messageContent = textInput.trim();
-
-    if (!messageContent && text.trim()) {
-      messageContent = text.trim();
-    }
-
-    if (messageContent) {
-      const userMessage: Message = {
-        role: "user",
-        content: messageContent,
-        timestamp: new Date().toLocaleTimeString(),
-      };
-
-      setMessages((prev) => [...prev, userMessage]);
-      setTextInput("");
-      setIsResponding(true);
-
-      await sendMessage(messageContent);
-    }
-  };
-
-  const LoadingDots = () => (
-    <div className="flex space-x-1">
-      <motion.div
-        className="w-2 h-2 bg-gray-600 rounded-full"
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-      />
-      <motion.div
-        className="w-2 h-2 bg-gray-600 rounded-full"
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-      />
-      <motion.div
-        className="w-2 h-2 bg-gray-600 rounded-full"
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-      />
-    </div>
-  );
-
-  const onFund = () => {
-    if (!selectedAgent?.tokenAddress) {
-      toast.error("No agent address available.");
-      return;
-    }
-    toast.info("Redirecting to agent funding interface...");
-  };
 
   useEffect(() => {
     if (!userAddress) return;
@@ -197,6 +76,190 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     chatWindowRef.current?.scrollTo(0, chatWindowRef.current.scrollHeight);
   }, [messages, isResponding]);
 
+  const sendMessage = useCallback(
+    async (content: string, returnVoice = false) => {
+      if (!userAddress) {
+        toast.error("User not identified. Please log in and try again.");
+        return;
+      }
+  
+      if (!selectedAgent?.id) {
+        toast.error("No agent selected. Please select an agent and try again.");
+        return;
+      }
+  
+      try {
+        const formData = new FormData();
+        formData.append("userId", userAddress);
+        // formData.append("roomId", `default-room-${selectedAgent.id}`);
+        formData.append("userName", user?.username ?? "Anonymous User");
+  
+        if (content.trim()) {
+          formData.append("text", content.trim());
+        }
+  
+        // Determine the endpoint based on the value of returnVoice
+        const endpoint = returnVoice
+          ? `/api/eliza/speak/${selectedAgent.id}`
+          : `/api/eliza/message/${selectedAgent.id}`;
+  
+        const response = await fetch(endpoint, {
+          method: "POST",
+          body: formData,
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Failed to send message: ${response.statusText}`);
+        }
+  
+        const contentType = response.headers.get("Content-Type");
+  
+        if (contentType && contentType.includes("application/json")) {
+          const responseData = await response.json();
+  
+          const assistantMessages: Message[] = Array.isArray(responseData)
+            ? responseData.map((msg) => ({
+                role: "assistant",
+                content: msg.text || "No response text",
+                timestamp: new Date().toLocaleTimeString(),
+                audioURL: msg.audioURL || undefined,
+              }))
+            : [
+                {
+                  role: "assistant",
+                  content: responseData.text || "No response text",
+                  timestamp: new Date().toLocaleTimeString(),
+                  audioURL: responseData.audioURL || undefined,
+                },
+              ];
+  
+          setMessages((prev) => [...prev, ...assistantMessages]);
+  
+          assistantMessages.forEach((msg) => {
+            if (msg.audioURL) {
+              const audio = new Audio(msg.audioURL);
+              audio.play().catch((error) => {
+                console.error("Failed to autoplay audio:", error);
+              });
+            }
+          });
+        } else if (contentType && contentType.includes("audio")) {
+          const blob = await response.blob();
+          const audioURL = URL.createObjectURL(blob);
+  
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: "Audio message",
+            timestamp: new Date().toLocaleTimeString(),
+            audioURL: audioURL,
+          };
+  
+          setMessages((prev) => [...prev, assistantMessage]);
+  
+          const audio = new Audio(audioURL);
+          audio.play().catch((error) => {
+            console.error("Failed to autoplay audio:", error);
+          });
+        } else {
+          console.error("Unexpected response content type:", contentType);
+          toast.error("Received an unexpected response from the server.");
+        }
+      } catch (error) {
+        console.error("API Error:", error);
+        toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
+      } finally {
+        setIsResponding(false);
+      }
+    },
+    [selectedAgent, userAddress, user?.username]
+  );
+  
+  
+
+  const handleSendMessage = async () => {
+    const messageContent = textInput.trim();
+
+    if (!messageContent) {
+      toast.error("Message cannot be empty.");
+      return;
+    }
+
+    const userMessage: Message = {
+      role: "user",
+      content: messageContent,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setTextInput("");
+    setIsResponding(true);
+
+    await sendMessage(messageContent, false);
+  };
+
+  const handleVoiceMessage = async (audioURL: string) => {
+    const userMessage: Message = {
+      role: "user",
+      content: "Audio message",
+      timestamp: new Date().toLocaleTimeString(),
+      audioURL: audioURL,
+    };
+  
+    setMessages((prev) => [...prev, userMessage]);
+    setIsResponding(true);
+  
+    try {
+      // Fetch the audio file from the provided URL
+      const audioBlob = await (await fetch(audioURL)).blob();
+      const audioFile = new File([audioBlob], "audio.webm", { type: "audio/webm" });
+  
+      // Convert the audio to text using the textToSpeech API
+      const formDataForVoice = new FormData();
+      formDataForVoice.append("audio", audioFile);
+  
+      const transcriptionResponse = await fetch("/api/textToSpeech", {
+        method: "POST",
+        body: formDataForVoice,
+      });
+  
+      if (!transcriptionResponse.ok) {
+        console.error("Failed to transcribe audio:", transcriptionResponse.statusText);
+        setIsResponding(false);
+        return;
+      }
+  
+      const transcriptionData = await transcriptionResponse.json();
+      const text = transcriptionData.text;
+  
+      await sendMessage(text, true);
+    } catch (error) {
+      console.error("Error processing voice message:", error);
+      toast.error("Failed to process voice message.");
+    } finally {
+      setIsResponding(false);
+    }
+  };
+
+  const LoadingDots = () => (
+    <div className="flex space-x-1">
+      <motion.div
+        className="w-2 h-2 bg-gray-600 rounded-full"
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+      />
+      <motion.div
+        className="w-2 h-2 bg-gray-600 rounded-full"
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+      />
+      <motion.div
+        className="w-2 h-2 bg-gray-600 rounded-full"
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+      />
+    </div>
+  );
+
   const renderContent = () => {
     if (!userAddress)
       return (
@@ -206,14 +269,14 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
           </p>
         </div>
       );
-
+  
     if (agents.length === 0)
       return (
         <div className="flex flex-col items-center justify-center h-full p-4">
           <p className="text-center text-gray-500 text-lg">No agents found. Create your first agent to get started!</p>
         </div>
       );
-
+  
     return (
       <div className="flex-1 overflow-y-auto space-y-4 px-4 pb-4" ref={chatWindowRef}>
         {messages.map((message, index) => (
@@ -227,13 +290,19 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                   </span>
                   <span className="text-xs text-muted-foreground">{message.timestamp}</span>
                 </div>
-                <p
-                  className={`text-sm mt-1 p-2 rounded-lg ${
-                    message.role === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"
-                  }`}
-                >
-                  {message.content}
-                </p>
+                <div className="flex items-center gap-2">
+                  {message.audioURL ? (
+                    <AudioPlayer audioURL={message.audioURL} />
+                  ) : (
+                    <p
+                      className={`text-sm mt-1 p-2 rounded-lg ${
+                        message.role === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"
+                      }`}
+                    >
+                      {message.content}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -257,13 +326,6 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     );
   };
 
-  const onCopy = () => {
-    if (selectedAgent?.tokenAddress) {
-      navigator.clipboard.writeText(selectedAgent.tokenAddress);
-      toast.success("Address copied to clipboard!");
-    }
-  };
-
   return (
     <Sheet open={isOpen} onOpenChange={onToggle}>
       <SheetTrigger asChild>
@@ -284,38 +346,85 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
 
       <SheetContent side="right" className="w-full md:max-w-[600px] lg:max-w-[800px]">
         <div className="flex flex-col h-full">
-          <SheetHeader className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-2xl">{selectedAgent?.name}</SheetTitle>
-              <div className="flex gap-2">
-                {selectedAgent?.tokenAddress && (
-                  <>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="secondary" onClick={onCopy}>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copy Address
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Copy agent contract address</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="secondary" onClick={onFund}>
-                            💰 Fund Agent
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Send funds to this agent</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </>
+          <SheetHeader className="px-4 py-3 md:px-6 md:py-4">
+            <div className="flex flex-col gap-y-3 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
+                {selectedAgent ? (
+                  <SheetTitle className="text-xl md:text-2xl truncate">
+                    {selectedAgent.name || "Unnamed Agent"}
+                  </SheetTitle>
+                ) : (
+                  <Skeleton className="h-7 w-[160px] md:h-8 md:w-[200px]" />
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {selectedAgent ? (
+                  selectedAgent.walletAddress ? (
+                    <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="secondary"
+                              onClick={() => {
+                                if (selectedAgent?.walletAddress) {
+                                  navigator.clipboard.writeText(selectedAgent.walletAddress);
+                                  toast.success("Address copied to clipboard!");
+                                }
+                              }}
+                              className="w-full sm:w-auto justify-start"
+                            >
+                              <Copy className="mr-2 h-4 w-4 shrink-0" />
+                              <span className="truncate">
+                                {selectedAgent.walletAddress ? "Copy Address" : "No Address"}
+                              </span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p className="max-w-[200px] text-center">
+                              {selectedAgent.walletAddress
+                                ? "Copy agent contract address"
+                                : "No contract address available"}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="secondary"
+                              onClick={() => {
+                                toast.info("Redirecting to agent funding interface...");
+                              }}
+                              className="w-full sm:w-auto flex items-center justify-center"
+                            >
+                              <span className="sm:hidden">💰</span>
+                              <span className="text-center">Fund Agent</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" align="center" className="mx-auto sm:mx-0">
+                            <p className="max-w-[200px] text-center">
+                              {selectedAgent.walletAddress
+                                ? "Send funds to this agent"
+                                : "Funding unavailable"}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground px-2 py-1.5 w-full text-center sm:text-left">
+                      No contract address available
+                    </div>
+                  )
+                ) : (
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Skeleton className="h-9 w-full sm:w-[128px]" />
+                    <Skeleton className="h-9 w-full sm:w-[110px]" />
+                  </div>
                 )}
               </div>
             </div>
@@ -325,7 +434,7 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
             <div className="px-6 py-4">
               <AgentSelector
                 agents={agents}
-                selectedAgent={selectedAgent || { id: "", name: "Select Agent", tokenAddress: "" }}
+                selectedAgent={selectedAgent || { id: "", name: "Select Agent", walletAddress: "" }}
                 onAgentChange={setSelectedAgent}
               />
             </div>
@@ -359,28 +468,13 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
                   </Button>
                 </form>
                 <div className="mt-4 flex justify-center">
-                <div className="sticky bottom-4 left-0 right-0 flex justify-center">
                   <HoldToSpeak
-                    onTranscription={(text: string) => {
-                      if (text.trim()) {
-                        setMessages((prev) => [
-                          ...prev,
-                          {
-                            role: "user",
-                            content: text,
-                            timestamp: new Date().toLocaleTimeString(),
-                          },
-                        ]);
-
-                        setIsResponding(true);
-
-                        sendMessage(text.trim()); // Trigger the sendMessage function with the transcribed text
-                      }
-                    }}
+                    onTranscription={(text) => handleVoiceMessage(text)}
+                    onRelease={() => setIsResponding(false)}
                     isLoading={isResponding}
                     isDisabled={!isLoggedIn || !selectedAgent}
+                    agentId={selectedAgent?.id ?? ""}
                   />
-                  </div>
                 </div>
               </div>
             </div>

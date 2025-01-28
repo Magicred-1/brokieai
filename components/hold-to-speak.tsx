@@ -1,19 +1,24 @@
-import { useState, useRef, useCallback } from 'react';
-import { Mic } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import VoiceWave from './voice-wave';
+import { useState, useRef, useCallback } from "react";
+import { toast } from "sonner";
+import { Button } from "./ui/button";
+import VoiceWave from "./voice-wave";
 
 interface HoldToSpeakProps {
   onTranscription: (text: string) => void;
+  onRelease: () => void;
   isLoading?: boolean;
   isDisabled?: boolean;
+  agentId: string;
 }
 
-export function HoldToSpeak({ onTranscription, isLoading = false, isDisabled = false }: HoldToSpeakProps) {
+export function HoldToSpeak({ onTranscription, onRelease, isLoading = false, isDisabled = false, agentId }: HoldToSpeakProps) {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  if (!agentId) {
+    throw new Error('Agent ID is required');
+  }
 
   const startRecording = useCallback(async () => {
     try {
@@ -43,25 +48,9 @@ export function HoldToSpeak({ onTranscription, isLoading = false, isDisabled = f
       const mediaRecorder = mediaRecorderRef.current!;
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.webm');
+        const audioURL = URL.createObjectURL(audioBlob);
 
-        try {
-          const response = await fetch('/api/transcribe', {
-            method: 'POST',
-            body: formData,
-          });
-
-          if (!response.ok) {
-            throw new Error('Transcription failed');
-          }
-
-          const data = await response.json();
-          onTranscription(data.text);
-        } catch (error) {
-          console.error('Transcription error:', error);
-          toast.error('Failed to transcribe audio');
-        }
+        onTranscription(audioURL);
 
         // Stop all tracks
         mediaRecorder.stream.getTracks().forEach(track => track.stop());
@@ -72,6 +61,13 @@ export function HoldToSpeak({ onTranscription, isLoading = false, isDisabled = f
       mediaRecorder.stop();
     });
   }, [onTranscription]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (isRecording) {
+      stopRecording();
+      onRelease();
+    }
+  }, [isRecording, stopRecording, onRelease]);
 
   return (
     <Button
@@ -85,13 +81,12 @@ export function HoldToSpeak({ onTranscription, isLoading = false, isDisabled = f
       }`}
       onMouseDown={startRecording}
       onMouseUp={stopRecording}
-      onMouseLeave={isRecording ? stopRecording : undefined}
+      onMouseLeave={handleMouseLeave}
       disabled={isLoading || isDisabled}
     >
       <div className="flex items-center space-x-2">
-        <Mic className={`h-5 w-5 text-white ${isRecording ? 'hidden' : ''}`} />
-        {isRecording && <VoiceWave isActive={true} />}
         <span>{isRecording ? '' : 'Hold to Speak'}</span>
+        {isRecording && <VoiceWave isActive={true} />}
       </div>
     </Button>
   );
