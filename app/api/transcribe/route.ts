@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { AzureOpenAI } from 'openai';
 
+export const dynamic = 'force-dynamic';
+
 const openai = new AzureOpenAI({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
   apiVersion: '2024-07-01-preview',

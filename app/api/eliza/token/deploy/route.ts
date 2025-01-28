@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// app/api/token/deploy/route.ts
+import { NextResponse, type NextRequest } from "next/server";
 import { Keypair } from "@solana/web3.js";
-import { NextResponse } from "next/server";
 import bs58 from "bs58";
 import { z } from "zod";
 import { createClient } from "@/utils/supabase";
+
+export const dynamic = 'force-dynamic';
 
 interface TokenMetadata {
   name: string;
@@ -17,6 +21,9 @@ interface TxResult {
   error?: string;
 }
 
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg'];
+
 const TokenSchema = z.object({
   name: z.string().min(2).max(25),
   symbol: z.string().min(2).max(10),
@@ -24,19 +31,36 @@ const TokenSchema = z.object({
   twitter: z.string().url().optional(),
   telegram: z.string().url().optional(),
   website: z.string().url().optional(),
-  imageData: z.string(),
+  imageData: z.string().refine((val) => {
+    const [data] = val.split(',');
+    const size = Buffer.from(data || '', 'base64').length;
+    return size <= MAX_IMAGE_SIZE;
+  }, 'Image too large (max 2MB)'),
   walletAddress: z.string(),
   agentID: z.string().uuid()
 });
 
-async function sendCreateTx(
-  formData: FormData,
-  apiKey: string
-): Promise<TxResult> {
+async function verifyWalletOwnership(walletAddress: string, agentId: string) {
+  const supabase = createClient();
+  const { data, error } = await (await supabase).from('agents').select('user_id').eq('id', agentId).single();
+
+  if (error || !data) return false;
+
+  const { data: walletData } = await (await supabase)
+    .from('wallets')
+    .select()
+    .eq('address', walletAddress)
+    .eq('user_id', data.user_id)
+    .single();
+
+  return !!walletData;
+}
+
+async function sendCreateTx(formData: FormData, apiKey: string): Promise<TxResult> {
   try {
     const mintKeypair = Keypair.generate();
 
-    // Store metadata on IPFS
+    // IPFS Metadata upload
     const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
       method: "POST",
       body: formData as any,
@@ -91,18 +115,27 @@ async function sendCreateTx(
   }
 }
 
-export const POST = async (req: Request) => {
+export const OPTIONS = async () => {
+  return new NextResponse(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
+};
+
+export const POST = async (req: NextRequest) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json",
   };
 
-  try {
+    // Environment validation
     const apiKey = process.env.PUMP_FUN_API_KEY;
     if (!apiKey) throw new Error("Missing Pump.fun API configuration");
 
-    // Validate input
+    // Request validation
     const rawBody = await req.json();
     const validation = TokenSchema.safeParse(rawBody);
     
@@ -115,9 +148,28 @@ export const POST = async (req: Request) => {
 
     const { data } = validation;
 
-    // Process image
-    const imageBuffer = Buffer.from(data.imageData.split(',')[1], 'base64');
-    const imageBlob = new Blob([imageBuffer], { type: 'image/png' });
+    // Wallet authorization check
+    const ownsWallet = await verifyWalletOwnership(data.walletAddress, data.agentID);
+    if (!ownsWallet) {
+      return NextResponse.json(
+        { error: "Wallet not authorized for this agent" },
+        { status: 403, headers }
+      );
+    }
+
+    // Image processing
+    const [header, base64Data] = data.imageData.split(',');
+    const mimeType = header.match(/:(.*?);/)?.[1];
+    
+    if (!mimeType || !ALLOWED_MIME_TYPES.includes(mimeType)) {
+      return NextResponse.json(
+        { error: "Invalid image format. Only PNG and JPEG are allowed." },
+        { status: 400, headers }
+      );
+    }
+
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const imageBlob = new Blob([imageBuffer], { type: mimeType });
     
     const formData = new FormData();
     formData.append('file', imageBlob, 'token-image.png');
@@ -131,7 +183,7 @@ export const POST = async (req: Request) => {
     if (data.telegram) formData.append('telegram', data.telegram);
     if (data.website) formData.append('website', data.website);
 
-    // Execute transaction with retry logic
+    // Transaction execution with retries
     let txResult: TxResult = { success: false };
     let retries = 3;
     
@@ -142,8 +194,8 @@ export const POST = async (req: Request) => {
       await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
-    if (!txResult!.success) {
-      throw new Error(txResult!.error || 'Token creation failed after retries');
+    if (!txResult.success) {
+      throw new Error(txResult.error || 'Token creation failed after retries');
     }
 
     // Save to Supabase
@@ -159,7 +211,8 @@ export const POST = async (req: Request) => {
       token_address: txResult.tokenAddress,
       transaction_link: txResult.transactionLink,
       wallet_address: data.walletAddress,
-      explorer_link: `https://pump.fun/coin/${txResult.tokenAddress}`
+      explorer_link: `https://pump.fun/coin/${txResult.tokenAddress}`,
+      status: 'pending'
     });
 
     if (error) throw new Error('Failed to save token data');
@@ -170,15 +223,4 @@ export const POST = async (req: Request) => {
       transactionLink: txResult.transactionLink,
       explorerLink: `https://pump.fun/coin/${txResult.tokenAddress}`
     }, { headers });
-
-  } catch (error) {
-    console.error('Deployment Error:', error);
-    return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Internal server error',
-        success: false
-      },
-      { status: 500, headers }
-    );
-  }
 };

@@ -2,6 +2,8 @@
 
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 type Props = {
     params: Promise<{
     agentId: string;

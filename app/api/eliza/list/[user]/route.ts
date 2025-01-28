@@ -3,6 +3,8 @@ import { createClient } from "@/utils/supabase";
 import { DBAgentList } from "@/utils/types";
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 type Props = {
   params: Promise<{
     user: string;

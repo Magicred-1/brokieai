@@ -7,6 +7,7 @@ import { middleware } from "@/utils/auth/middleware";
 import bs58 from "bs58";
 import { Node } from "@xyflow/react";
 
+export const dynamic = 'force-dynamic';
 
 enum NodeLabel {
   TOKEN_DEPLOY = "💰 Deploy Token",
