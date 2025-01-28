@@ -2,8 +2,6 @@ import { createClient } from "@/utils/supabase";
 import { Keypair } from "@solana/web3.js";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-// import jwt, { JwtPayload } from "jsonwebtoken";
-// import { JwksClient } from "jwks-rsa";
 import { middleware } from "@/utils/auth/middleware";
 import bs58 from "bs58";
 
@@ -11,15 +9,22 @@ function generate_characters(
   name: string,
   description: string,
   publicKey: string,
-  privateKey: string
+  privateKey: string,
+  bio: string[],
+  lore: string,
+  style: { all: string[]; chat: string[]; post: string[] },
+  topics: string[],
+  knowledge: string[],
+  adjectives: string[],
+  postExamples: string[],
+  messageExamples: { role: string; content: string }[]
 ) {
   return {
     id: uuidv4(),
     name: name,
     plugins: ['@elizaos/plugin-solana-agentkit', '@elizaos/plugin-web-search', '@elizaos/plugin-coinmarketcap'],
     clients: ['direct'],
-    modelProvider: 'openai',
-
+    modelProvider: 'google',
     settings: {
       voice: { model: "en_US-hfc_female-medium" },
       secrets: {
@@ -27,29 +32,15 @@ function generate_characters(
         SOLANA_PUBLIC_KEY: publicKey,
       },
     },
-    bio: [description],
-    lore: [
-      "Secret Service allocations used for election interference.",
-      "Promotes WorldLibertyFi for crypto leadership.",
-    ],
-    knowledge: [
-      "Understands border issues, Secret Service dynamics, and financial impacts on families.",
-    ],
-    topics: [], // Ensure topics are included if needed
-    adjectives: [], // Ensure adjectives are included if needed
-    style: { all: [], chat: [], post: [] }, // Ensure style is included if needed
-    messageExamples: [
-      [
-        {
-          user: "{{user1}}",
-          content: { text: "What about the border crisis?" },
-        },
-      ],
-    ],
-    postExamples: [
-      "End inflation and make America affordable again.",
-      "America needs law and order, not crime creation.",
-    ],
+    description: description,
+    bio: bio,
+    lore: lore ? [lore] : [],
+    knowledge: knowledge,
+    topics: topics,
+    adjectives: adjectives,
+    style: style,
+    messageExamples: messageExamples,
+    postExamples: postExamples,
   };
 }
 
@@ -57,99 +48,83 @@ function generateSolanaWallet() {
   const keypair = Keypair.generate();
   const publicKey = keypair.publicKey.toBase58();
   const privateKey = bs58.encode(keypair.secretKey);
-
   return { publicKey, privateKey };
 }
 
 export const POST = async (req: Request) => {
   try {
-    // middle function logic (JWT verification)
-    // not the best practice to have this logic in the route but for simplicity and fast prototyping
     const middle = await middleware(req);
-
-    if (middle === "401") {
-      return NextResponse.json(
-        { error: "Unauthorized: Invalid token." },
-        { status: 401 }
-      );
-    }
-
-    if (middle === "403") {
-      return NextResponse.json(
-        { error: "Forbidden: Requires additional authentication." },
-        { status: 403 }
-      );
+    if (middle === "401" || middle === "403") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userAddress = middle;
-
     if (!userAddress) {
       return NextResponse.json(
-        { error: "Wallet Address is required in the request body." },
+        { error: "Wallet Address is required" },
         { status: 400 }
       );
     }
 
     const requestData = await req.json();
-    const { name, description } = requestData;
+    const { 
+      name,
+      description,
+      bio = [],
+      lore = '',
+      style = { all: [], chat: [], post: [] },
+      topics = [],
+      knowledge = [],
+      adjectives = [],
+      postExamples = [],
+      messageExamples = []
+    } = requestData;
 
-    // Validate name and walletAddress input
-    if (!name) {
+    if (!name || !description) {
       return NextResponse.json(
-        { error: "Name is required in the request body." },
-        { status: 400 }
-      );
-    }
-
-    if (!description) {
-      return NextResponse.json(
-        { error: "Description is required in the request body." },
-        { status: 400 }
-      );
-    }
-
-    if (!userAddress) {
-      return NextResponse.json(
-        { error: "Wallet Address is required in the request body." },
+        { error: "Name and description are required" },
         { status: 400 }
       );
     }
 
     const { publicKey, privateKey } = generateSolanaWallet();
-
-    // Generate character data
     const character = generate_characters(
       name,
       description,
       publicKey,
-      privateKey
+      privateKey,
+      bio,
+      lore,
+      style,
+      topics,
+      knowledge,
+      adjectives,
+      postExamples,
+      messageExamples
     );
 
-    // console.log("Generated Character:", character); // Log the character data to ensure it includes all fields
-
     const supabase = await createClient();
-
-    // Store agent in Supabase with 'active' flag and 'configuration' JSON
-    const { data: supabaseData, error } = await supabase
+    const { data, error } = await supabase
       .from("configuration")
       .insert([
         {
           id: character.id,
           name: character.name,
-          active: true, // Setting the agent as active
+          active: true,
           configuration: {
             plugins: character.plugins,
             clients: character.clients,
             modelProvider: character.modelProvider,
             settings: character.settings,
+            description: character.description,
             bio: character.bio,
             lore: character.lore,
             knowledge: character.knowledge,
-            topics: character.topics, // Ensure topics are included
-            adjectives: character.adjectives, // Ensure adjectives are included
-            style: character.style, // Ensure style is included
-            messageExamples: character.messageExamples, // Ensure message examples are included
-            postExamples: character.postExamples, // Ensure post examples are included
+            topics: character.topics,
+            adjectives: character.adjectives,
+            style: character.style,
+            messageExamples: character.messageExamples,
+            postExamples: character.postExamples,
           },
           owner: userAddress,
         },
@@ -161,7 +136,7 @@ export const POST = async (req: Request) => {
 
     return NextResponse.json({
       message: "Agent created successfully!",
-      data: supabaseData,
+      data: data,
     });
   } catch (error) {
     return NextResponse.json({ error: error }, { status: 500 });
