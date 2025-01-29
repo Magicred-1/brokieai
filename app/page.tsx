@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { Bot, Mic, Blocks } from 'lucide-react';
+import { Bot, Mic, Blocks, File } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { WalletDialog } from "@/components/wallet-dialog";
 import HeroVideoDialog from "@/components/ui/hero-video-dialog";
@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
 import SolanaIcon from "@/components/solana-icon";
 import PumpFunIcon from "@/components/pumfun-icon";
+import { Github } from 'lucide-react';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -70,6 +71,14 @@ export default function LandingPage() {
                   onClick={() => router.push('/create')}
                 >
                   Start Building Free Now →
+                </Button>
+                <Button 
+                  className="bg-transparent border-[#2683C0] text-[#2683C0] px-8 py-6 text-lg"
+                  variant={"outline"}
+                  effect={"shineHover"}
+                  onClick={() => router.push('https://docs.google.com/presentation/d/1YIHT_81daPjMBrGXQ1N7Lf9v0L1jQksX_vtzVS6WnvE/edit?usp=sharing')}
+                >
+                  See our Deck →
                 </Button>
                 <div className="text-center mt-4 sm:mt-0">
                   <p className="text-sm text-gray-400">Deploy your first agent in 60 seconds</p>
@@ -218,15 +227,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-800 py-12">
-        <div className="container mx-auto px-4">
-          <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} BrokieAI. All rights reserved.</p>
-            <p className="mt-2 text-sm">Build/Deploy/Monetize in <span className="text-[#2683C0]">＜1m</span></p>
+    <footer className="border-t border-gray-800 py-12">
+      <div className="container mx-auto px-4">
+        <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
+          <p>&copy; {new Date().getFullYear()} BrokieAI. All rights reserved.</p>
+          <p className="mt-2 text-sm">Build/Deploy/Monetize in <span className="text-[#2683C0]">＜1m</span></p>
+          <p className="mt-2 text-sm">Made with ❤️ on <SolanaIcon className="h-6 w-6 inline-block" /> Solana during <span className="text-[#2683C0]"><a href="https://www.fundraiser.com/hackathon">fundraiser.com AI Hackathon</a></span></p>
+
+          <div className="mt-6">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start items-center">
+              <Button
+                effect={"shineHover"}
+                variant="outline"
+                className="flex items-center justify-center mx-auto border-gray-400 text-gray-400 hover:bg-gray-700 hover:text-white"
+                onClick={() => window.open("https://github.com/Magicred-1/brokieai", "_blank")}
+              >
+                <Github className="h-6 w-6 mr-2" />
+                GitHub
+              </Button>
+              <Button
+                effect={"shineHover"}
+                variant="outline"
+                className="flex items-center justify-center mx-auto border-gray-400 text-gray-400 hover:bg-gray-700 hover:text-white"
+                onClick={() => window.open("https://docs.google.com/presentation/d/1YIHT_81daPjMBrGXQ1N7Lf9v0L1jQksX_vtzVS6WnvE/edit?usp=sharing", "_blank")}
+              >
+                <File className="h-6 w-6 mr-2" />
+                Pitch Deck
+              </Button>
+            </div>
           </div>
         </div>
-      </footer>
+      </div>
+    </footer>
+
     </motion.div>
   )
 }
