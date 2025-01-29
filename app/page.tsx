@@ -61,7 +61,7 @@ export default function LandingPage() {
               </motion.h1>
               <p className="text-gray-400 text-lg md:text-xl mb-8 max-w-2xl mx-auto md:mx-0">
                 <span className="font-semibold text-[#2683C0]">Zero Coding, Full Control</span> – 
-                Turn ideas into automated income streams on <SolanaIcon className="h-6 w-6 inline-block" /> Solana. No tech skills required.
+                Turn ideas into DeFAI automated income streams on <SolanaIcon className="h-6 w-6 inline-block" /> Solana. No tech skills required.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start items-center">
                 <Button 
