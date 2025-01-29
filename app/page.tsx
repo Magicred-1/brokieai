@@ -190,9 +190,10 @@ export default function LandingPage() {
             <div className="relative">
               <div className="aspect-video relative bg-black rounded-lg overflow-hidden shadow-md">
               <HeroVideoDialog
-                videoSrc="#"
+                videoSrc="/hero_preview.gif"
                 thumbnailSrc="/preview_video.png"
                 animationStyle="from-center"
+                className="w-full h-full object-cover"
               />
               </div>
             </div>
