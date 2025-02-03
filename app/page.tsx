@@ -12,6 +12,7 @@ import Spline from '@splinetool/react-spline';
 import SolanaIcon from "@/components/solana-icon";
 import PumpFunIcon from "@/components/pumfun-icon";
 import { Github } from 'lucide-react';
+import { FaTelegram, FaTwitter } from "react-icons/fa";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -24,13 +25,14 @@ export default function LandingPage() {
       transition={{ duration: 0.5 }}
     >
       {/* Header */}
+      {/* Header */}
       <header className="border-b border-gray-800">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Image src="/andrew_smoking.gif" alt="BrokieAI Logo" width={50} height={50} />
             <span className="font-bold text-xl">BrokieAI</span>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-4">
             <Button
               effect={"shineHover"}
               variant="outline"
@@ -40,6 +42,12 @@ export default function LandingPage() {
               Create Agent
             </Button>
             <WalletDialog />
+            <a href="https://t.me/brokie_ai" target="_blank" rel="noopener noreferrer">
+              <FaTelegram className="h-6 w-6 text-gray-400 hover:text-white transition" />
+            </a>
+            <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
+              <FaTwitter className="h-6 w-6 text-gray-400 hover:text-white transition" />
+            </a>
           </div>
         </div>
       </header>
@@ -241,10 +249,19 @@ export default function LandingPage() {
                 effect={"shineHover"}
                 variant="outline"
                 className="flex items-center justify-center mx-auto border-gray-400 text-gray-400 hover:bg-gray-700 hover:text-white"
-                onClick={() => window.open("https://github.com/Magicred-1/brokieai", "_blank")}
+                onClick={() => window.open("https://t.me/brokie_ai", "_blank")}
               >
-                <Github className="h-6 w-6 mr-2" />
-                GitHub
+                <FaTelegram className="h-6 w-6 mr-2" />
+                Telegram
+              </Button>
+              <Button
+                effect={"shineHover"}
+                variant="outline"
+                className="flex items-center justify-center mx-auto border-gray-400 text-gray-400 hover:bg-gray-700 hover:text-white"
+                onClick={() => window.open("https://x.com/Brokie_AI", "_blank")}
+              >
+                <FaTwitter className="h-6 w-6 mr-2" />
+                Twitter
               </Button>
               <Button
                 effect={"shineHover"}
