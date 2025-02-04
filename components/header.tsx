@@ -5,11 +5,11 @@ import Image from 'next/image'
 import { HowItWorksDialog } from './how-it-works-dialog'
 import { BuyCryptoDialog } from './buy-crypto-dialog'
 import { WalletDialog } from './wallet-dialog'
-import { ThemeToggle } from './theme-toggle'
 import { MobileMenu } from './mobile-menu'
 // import { CreateAgentDialog } from './create-agent-dialog'
 import { ChatDrawer } from './chat-drawer'
 import Link from 'next/link'
+import { FaTelegram, FaTwitter } from 'react-icons/fa'
 
 interface HeaderProps {
   readonly isRightDrawerOpen: boolean;
@@ -38,7 +38,12 @@ export function Header({ isRightDrawerOpen, onToggleRightDrawer }: HeaderProps) 
         <HowItWorksDialog />
         <BuyCryptoDialog />
         <WalletDialog />
-        <ThemeToggle />
+        <a href="https://t.me/brokie_ai" target="_blank" rel="noopener noreferrer">
+          <FaTelegram className="h-6 w-6 text-gray-400 hover:text-white transition" />
+        </a>
+        <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
+          <FaTwitter className="h-6 w-6 text-gray-400 hover:text-white transition" />
+        </a>
       </div>
 {/* 
       <MenuDrawer /> */}
