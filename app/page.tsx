@@ -93,9 +93,9 @@ export default function LandingPage() {
               <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
                 <FaTwitter className="h-5 w-5 text-gray-400 hover:text-white transition" />
               </a>
-              <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
+              {/* <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
                 <PumpFunIcon className="h-5 w-5 text-gray-400 hover:text-white transition" />
-              </a>
+              </a> */}
             </div>
             {/* Mobile menu button */}
             <Button
