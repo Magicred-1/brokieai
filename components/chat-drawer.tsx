@@ -42,11 +42,6 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
 
   const [messages, setMessages] = useState<Message[]>([
     {
-      role: "user",
-      content: "Hello!",
-      timestamp: "10:15 AM",
-    },
-    {
       role: "assistant",
       content: "Hi there! How can I assist you today?",
       timestamp: "10:16 AM",
@@ -280,10 +275,10 @@ export function ChatDrawer({ isOpen, onToggle }: ChatDrawerProps) {
     return (
       <div className="flex-1 overflow-y-auto space-y-4 px-4 pb-4" ref={chatWindowRef}>
         {messages.map((message, index) => (
-          <div key={index} className={`flex ${message.role === "user" ? "justify-start" : "justify-end"} p-4`}>
+          <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} p-4`}>
             <div className={`flex ${message.role === "user" ? "flex-row" : "flex-row-reverse"} items-start gap-4`}>
               <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
-              <div className={`flex flex-col ${message.role === "user" ? "items-start" : "items-end"}`}>
+              <div className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"}`}>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">
                     {message.role === "user" ? user?.username : selectedAgent?.name}

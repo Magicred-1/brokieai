@@ -3,19 +3,21 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { Bot, Mic, Blocks, File } from 'lucide-react';
+import { Bot, Mic, Blocks, File, Github, Menu, X } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { WalletDialog } from "@/components/wallet-dialog";
 import HeroVideoDialog from "@/components/ui/hero-video-dialog";
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import Spline from '@splinetool/react-spline';
 import SolanaIcon from "@/components/solana-icon";
 import PumpFunIcon from "@/components/pumfun-icon";
-import { Github } from 'lucide-react';
 import { FaTelegram, FaTwitter } from "react-icons/fa";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
+import { useState } from "react";
 
 export default function LandingPage() {
   const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <motion.div 
@@ -26,31 +28,112 @@ export default function LandingPage() {
     >
       {/* Header */}
       {/* Header */}
-      <header className="border-b border-gray-800">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Image src="/andrew_smoking.gif" alt="BrokieAI Logo" width={50} height={50} />
-            <span className="font-bold text-xl">BrokieAI</span>
-          </div>
-          <div className="flex items-center space-x-4">
+      <header className="border-b border-gray-800 sticky top-0 z-50 bg-[#020817]/80 backdrop-blur-sm">
+  <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+    {/* Left: Logo */}
+    <div className="flex items-center space-x-2">
+      <Image src="/andrew_smoking.gif" alt="BrokieAI Logo" width={50} height={50} />
+      <span className="font-bold text-xl">BrokieAI</span>
+    </div>
+
+    {/* Center: Navigation (hidden on mobile) */}
+    <nav className="hidden md:flex items-center space-x-6">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button
-              effect={"shineHover"}
-              variant="outline"
-              className="hidden md:block border-[#2683C0] text-[#2683C0] hover:bg-[#2683C0] hover:text-white"
-              onClick={() => router.push('/create')}
+              variant="link"
+              className="text-gray-300 hover:text-white transition-colors"
+              onClick={() => router.push("#")}
             >
-              Create Agent
+              Marketplace
             </Button>
-            <WalletDialog />
-            <a href="https://t.me/brokie_ai" target="_blank" rel="noopener noreferrer">
-              <FaTelegram className="h-6 w-6 text-gray-400 hover:text-white transition" />
+          </TooltipTrigger>
+          <TooltipContent className="bg-gray-800 text-white p-2 rounded-lg text-sm">Coming Soon</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <Button
+        effect={"shineHover"}
+        variant="outline"
+        className="border-[#2683C0] text-[#2683C0] hover:bg-[#2683C0] hover:text-white"
+        onClick={() => router.push("/create")}
+      >
+        Create Agent
+      </Button>
+    </nav>
+
+    {/* Right: Actions */}
+    <div className="flex items-center space-x-4">
+      <WalletDialog />
+      <div className="hidden md:flex items-center space-x-2">
+        <a href="https://t.me/brokie_ai" target="_blank" rel="noopener noreferrer">
+          <FaTelegram className="h-5 w-5 text-gray-400 hover:text-white transition" />
+        </a>
+        <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
+          <FaTwitter className="h-5 w-5 text-gray-400 hover:text-white transition" />
+        </a>
+      </div>
+      {/* Mobile menu button */}
+      <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </Button>
+    </div>
+  </div>
+
+  {/* Mobile menu */}
+  <AnimatePresence>
+    {isMobileMenuOpen && (
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="md:hidden bg-[#020817] border-t border-gray-800"
+      >
+        <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+          <Button
+            variant="ghost"
+            className="text-gray-300 hover:text-white transition-colors justify-start"
+            onClick={() => {
+              router.push("#")
+              setIsMobileMenuOpen(false)
+            }}
+          >
+            Marketplace (Coming Soon)
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-gray-300 hover:text-white transition-colors justify-start"
+            onClick={() => {
+              router.push("/create")
+              setIsMobileMenuOpen(false)
+            }}
+          >
+            Create Agent
+          </Button>
+          <div className="flex space-x-4 pt-4">
+            <a
+              href="https://t.me/brokie_ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-white transition"
+            >
+              <FaTelegram className="h-6 w-6" />
             </a>
-            <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
-              <FaTwitter className="h-6 w-6 text-gray-400 hover:text-white transition" />
+            <a
+              href="https://x.com/Brokie_AI"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-white transition"
+            >
+              <FaTwitter className="h-6 w-6" />
             </a>
           </div>
-        </div>
-      </header>
+        </nav>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</header>
+
 
       {/* Hero Section */}
       <section className="py-12 md:py-20">

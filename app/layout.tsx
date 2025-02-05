@@ -10,6 +10,19 @@ const lexend = Lexend({ subsets: ['latin'], weight: "400" })
 export const metadata: Metadata = {
   title: 'BrokieAI',
   description: 'BrokieAI is a no-code platform for creating and managing AI agents.',
+  applicationName: 'BrokieAI',
+  authors: [
+    {
+      url: 'https://x.com/Magicred_1',
+      name: 'Magicred1',
+    },
+  ],
+  robots: 'follow, index',
+  twitter: {
+    site: '@Brokie_AI',
+    card: 'summary_large_image',
+  },
+  keywords: ['AI', 'Agents', 'No-Code', 'BrokieAI', "Solana", "Web3", "Blockchain"],
 }
 
 export default function RootLayout({
