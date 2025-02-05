@@ -23,6 +23,14 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
   },
   keywords: ['AI', 'Agents', 'No-Code', 'BrokieAI', "Solana", "Web3", "Blockchain"],
+  colorScheme: 'dark',
+  icons: [
+    {
+      sizes: '32x32',
+      type: 'image/gif',
+      url: '/favicon.gif',
+    },
+  ],
 }
 
 export default function RootLayout({
