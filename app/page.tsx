@@ -29,110 +29,139 @@ export default function LandingPage() {
       {/* Header */}
       {/* Header */}
       <header className="border-b border-gray-800 sticky top-0 z-50 bg-[#020817]/80 backdrop-blur-sm">
-  <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-    {/* Left: Logo */}
-    <div className="flex items-center space-x-2">
-      <Image src="/andrew_smoking.gif" alt="BrokieAI Logo" width={50} height={50} />
-      <span className="font-bold text-xl">BrokieAI</span>
-    </div>
-
-    {/* Center: Navigation (hidden on mobile) */}
-    <nav className="hidden md:flex items-center space-x-6">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="link"
-              className="text-gray-300 hover:text-white transition-colors"
-              onClick={() => router.push("#")}
-            >
-              Marketplace
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-gray-800 text-white p-2 rounded-lg text-sm">Coming Soon</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <Button
-        effect={"shineHover"}
-        variant="outline"
-        className="border-[#2683C0] text-[#2683C0] hover:bg-[#2683C0] hover:text-white"
-        onClick={() => router.push("/create")}
-      >
-        Create Agent
-      </Button>
-    </nav>
-
-    {/* Right: Actions */}
-    <div className="flex items-center space-x-4">
-      <WalletDialog />
-      <div className="hidden md:flex items-center space-x-2">
-        <a href="https://t.me/brokie_ai" target="_blank" rel="noopener noreferrer">
-          <FaTelegram className="h-5 w-5 text-gray-400 hover:text-white transition" />
-        </a>
-        <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
-          <FaTwitter className="h-5 w-5 text-gray-400 hover:text-white transition" />
-        </a>
-      </div>
-      {/* Mobile menu button */}
-      <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-      </Button>
-    </div>
-  </div>
-
-  {/* Mobile menu */}
-  <AnimatePresence>
-    {isMobileMenuOpen && (
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className="md:hidden bg-[#020817] border-t border-gray-800"
-      >
-        <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-          <Button
-            variant="ghost"
-            className="text-gray-300 hover:text-white transition-colors justify-start"
-            onClick={() => {
-              router.push("#")
-              setIsMobileMenuOpen(false)
-            }}
-          >
-            Marketplace (Coming Soon)
-          </Button>
-          <Button
-            variant="ghost"
-            className="text-gray-300 hover:text-white transition-colors justify-start"
-            onClick={() => {
-              router.push("/create")
-              setIsMobileMenuOpen(false)
-            }}
-          >
-            Create Agent
-          </Button>
-          <div className="flex space-x-4 pt-4">
-            <a
-              href="https://t.me/brokie_ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-400 hover:text-white transition"
-            >
-              <FaTelegram className="h-6 w-6" />
-            </a>
-            <a
-              href="https://x.com/Brokie_AI"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-400 hover:text-white transition"
-            >
-              <FaTwitter className="h-6 w-6" />
-            </a>
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          {/* Left: Logo and Token Price */}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Image src="/andrew_smoking.gif" alt="BrokieAI Logo" width={50} height={50} />
+              <span className="font-bold text-xl">BrokieAI</span>
+            </div>
+            {/* <div className="flex items-center space-x-2 bg-gray-800 rounded-full px-3 py-1">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <a href="https://pump.fun" target="_blank" rel="noopener noreferrer">
+                      <div className="flex items-center space-x-1">
+                        <Image src="/andrew_smoking.gif" alt="Token" width={20} height={20} />
+                        <span className="text-sm font-medium text-gray-300">$0.0123</span>
+                      </div>
+                    </a>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-800 text-white p-2 rounded-lg text-sm">
+                    <PumpFunIcon className="h-2 w-2 inline-block" /> Pump.fun
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div> */}
           </div>
-        </nav>
-      </motion.div>
-    )}
-  </AnimatePresence>
-</header>
+
+          {/* Center: Navigation (hidden on mobile) */}
+          <nav className="hidden md:flex items-center space-x-6">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="link"
+                    className="text-gray-300 hover:text-white transition-colors"
+                    onClick={() => router.push("#")}
+                  >
+                    Marketplace
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-800 text-white p-2 rounded-lg text-sm">
+                  🚀 Coming Soon
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Button
+              effect={"shineHover"}
+              variant="outline"
+              className="border-[#2683C0] text-[#2683C0] hover:bg-[#2683C0] hover:text-white"
+              onClick={() => router.push("/create")}
+            >
+              Create Agent
+            </Button>
+          </nav>
+
+          {/* Right: Actions */}
+          <div className="flex items-center space-x-4">
+            <WalletDialog />
+            <div className="hidden md:flex items-center space-x-2">
+              <a href="https://t.me/brokie_ai" target="_blank" rel="noopener noreferrer">
+                <FaTelegram className="h-5 w-5 text-gray-400 hover:text-white transition" />
+              </a>
+              <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
+                <FaTwitter className="h-5 w-5 text-gray-400 hover:text-white transition" />
+              </a>
+              <a href="https://x.com/Brokie_AI" target="_blank" rel="noopener noreferrer">
+                <PumpFunIcon className="h-5 w-5 text-gray-400 hover:text-white transition" />
+              </a>
+            </div>
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="md:hidden bg-[#020817] border-t border-gray-800"
+            >
+              <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+                <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white transition-colors justify-start"
+                  onClick={() => {
+                    router.push("#")
+                    setIsMobileMenuOpen(false)
+                  }}
+                >
+                  Marketplace (Coming Soon)
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white transition-colors justify-start"
+                  onClick={() => {
+                    router.push("/create")
+                    setIsMobileMenuOpen(false)
+                  }}
+                >
+                  Create Agent
+                </Button>
+                <div className="flex space-x-4 pt-4">
+                  <a
+                    href="https://t.me/brokie_ai"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-white transition"
+                  >
+                    <FaTelegram className="h-6 w-6" />
+                  </a>
+                  <a
+                    href="https://x.com/Brokie_AI"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-white transition"
+                  >
+                    <FaTwitter className="h-6 w-6" />
+                  </a>
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
 
 
       {/* Hero Section */}
