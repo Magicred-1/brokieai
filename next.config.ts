@@ -5,6 +5,14 @@ const nextConfig: NextConfig = {
     // This will disable ESLint during the build process
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
