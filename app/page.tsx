@@ -14,6 +14,7 @@ import PumpFunIcon from "@/components/pumfun-icon";
 import { FaTelegram, FaTwitter } from "react-icons/fa";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
 import { useState } from "react";
+import { LogoSection } from "@/components/ui/logo-slider";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -267,6 +268,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <LogoSection />
 
       {/* Social Proof */}
       <section className="py-12 bg-gray-900">
