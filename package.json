@@ -58,7 +58,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@elizaos/plugin-solana": "^0.1.8",
+    "@elizaos/plugin-solana": "^0.25.6-alpha.1",
     "@eslint/eslintrc": "^3",
     "@types/lodash": "^4.17.14",
     "@types/node": "^20",
